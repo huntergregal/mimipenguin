@@ -8,6 +8,7 @@ Takes advantage of the gnome login screen feature by dumping the memory of the p
 # Supported/Tested
 * Kali 4.3.0 (rolling) x64
 * Ubuntu 12.04 LTS x64
+* Ubuntu 16.04 LTS x64
 
 # Notes
 * Ubuntu support still in testing
