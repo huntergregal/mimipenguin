@@ -60,3 +60,6 @@ while read -r line; do
 		echo "$line,MEDIUM"
 	fi
 done <<< "$DUMP"
+
+#Cleanup
+rm -rf "/tmp/dump.${PID}"
