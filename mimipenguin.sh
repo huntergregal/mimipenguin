@@ -68,7 +68,7 @@ while read -r line; do
 	elif [[ $line =~ \/bin ]]; then
 		echo "$line,LOW"
 	elif [[ `python -c "import crypt; print crypt.crypt($CRYPT)"` == $HASH ]]; then
-		echo "$line,HIGH"
+		echo "$line,HIGH	[HASH MATCH!]"
 	else
 		echo "$line,MEDIUM"
 	fi
