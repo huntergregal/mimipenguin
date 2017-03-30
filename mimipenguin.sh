@@ -37,9 +37,7 @@ if [[ `uname -a | awk '{print tolower($0)}'` == *"ubuntu"* ]]; then
 fi
 
 #If hash in dump, print it
-if [[ $HASH ]]; then
-	echo "$HASH,HASH"
-else
+if [[ ! $HASH ]]; then
 	#Else Get shadow hashes
 	SHADOWHASHES="$(cat /etc/shadow | cut -d':' -f 2 | egrep '^\$6\$')"
 fi
