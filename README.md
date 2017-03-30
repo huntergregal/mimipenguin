@@ -7,8 +7,8 @@ Takes advantage of the gnome login screen feature by dumping the memory of the p
 
 # Supported/Tested
 * Kali 4.3.0 (rolling) x64
-* Ubuntu 12.04 LTS x64
-* Ubuntu 16.04 LTS x64
+* Ubuntu Desktop 12.04 LTS x64
+* Ubuntu Desktop 16.04 LTS x64
 
 # Notes
 * Password moves in memory - still honing in on 100% effectiveness
