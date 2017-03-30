@@ -3,7 +3,7 @@ A tool to dump the login password from the current linux user. Adapted after the
 * Special thanks to pugilist for cleaning up PID extraction and testing.
 
 # Details
-Takes advantage of the gnome login screen feature by dumping the memory of the process and extracting lines that have a high probability of containing the current user's cleartext password. Will attempt to calculate each word's password potential based on known strings found in the process and whether or not the hash was able to be extracted.
+Takes advantage of the gnome login screen feature by dumping the memory of the process and extracting lines that have a high probability of containing the current user's cleartext password. Will attempt to calculate each word's probability by checking hashes in /etc/shadow.
 
 # Supported/Tested
 * Kali 4.3.0 (rolling) x64
