@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/bash
 
 # Author: Hunter Gregal
 # Github: /huntergregal
@@ -47,8 +47,10 @@ while read -r line; do
 	#if hash, prepare crypt line
 	if [[ $HASH ]]; then
 		CRYPT="\"$line\", \"\$6\$$SALT\""
+		if [[ `python -c "import crypt; print crypt.crypt($CRYPT)"` == $HASH ]]; then
+			echo "$line,HIGH	[HASH MATCH!]"
+		fi
 	fi
-	
 	if [[ $line =~ ^_pammodutil.+[0-9]$ ]]; then
 		echo "$line,LOW"
 	elif [[ $line =~ ^LOGNAME= ]]; then
@@ -67,8 +69,18 @@ while read -r line; do
 		echo "$line,LOW"
 	elif [[ $line =~ \/bin ]]; then
 		echo "$line,LOW"
-	elif [[ `python -c "import crypt; print crypt.crypt($CRYPT)"` == $HASH ]]; then
-		echo "$line,HIGH	[HASH MATCH!]"
+	elif [[ $line =~ libgck\-1\.so\.[0-1] ]]; then
+		echo "$line,LOW"
+	elif [[ $line =~ ^\/usr\/lib ]]; then
+		echo "$line,LOW"
+	elif [[ $line =~ libgio\-2\.0\.so\.[0-1] ]]; then
+		echo "$line,LOW"
+	elif [[ $line =~ ^linux\-vdso\.so\.[0-1] ]]; then
+		echo "$line,LOW"
+	elif [[ $line =~ ^tls\/x86_64 ]]; then
+		echo "$line,LOW"
+	elif [[ $line =~ ^n\-[a-z][0-9] ]]; then
+		echo "$line,LOW"
 	else
 		echo "$line,MEDIUM"
 	fi
