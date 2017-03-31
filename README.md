@@ -8,15 +8,13 @@ Added support for VSFTPD, Apache2 HTTP Basic Auth
 
 # Requires
 * root permissions
-* Desktop envrionment (gnome)
-* Or VSFTPd with active connections
 
 # Supported/Tested
-* Kali 4.3.0 (rolling) x64
-* Ubuntu Desktop 12.04 LTS x64
-* Ubuntu Desktop 16.04 LTS x64
-* VSFTpd [NEW!]
-* Apache2 HTTP BASIC [NEW!]
+* Kali 4.3.0 (rolling) x64 (Gnome Desktop)
+* Ubuntu Desktop 12.04 LTS x64 (Gnome Desktop)
+* Ubuntu Desktop 16.04 LTS x64 (Gnome Desktop)
+* VSFTPd 3.0.3-8+b1 (Active FTP client connections)
+* Apache2 2.4.25-3 (Active/Old HTTP BASIC AUTH Sessions)
 
 # Notes
 * Password moves in memory - still honing in on 100% effectiveness
