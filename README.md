@@ -25,3 +25,8 @@ Takes advantage of cleartext credentials in memory by dumping the process and ex
 * Known bug - sometimes gcore hangs the script, this is a problem with gcore
 * Open to pull requests and community research
 * LDAP research (nscld winbind etc) planned for future
+
+#Contact
+* Twitter: [@huntergregal](https://twitter.com/HunterGregal)
+* Website: [huntergregal.com](http://huntergregal.com)
+* Github: [huntergregal](https://github.com/huntergregal)
