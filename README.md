@@ -24,4 +24,5 @@ Added support for VSFTPD, Apache2 HTTP Basic Auth
 * Plan on expanding support and other credential locations
 * Working on expanding to non-desktop environments
 * Known bug - sometimes gcore hangs the script, this is a problem with gcore
-
+* Open to pull requests and community research
+* LDAP research (nscld winbind etc) planned for future
