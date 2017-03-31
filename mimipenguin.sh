@@ -62,8 +62,29 @@ while read -r line; do
 				echo "$USER:$line"
 			fi
 		done <<< "$SHADOWHASHES"
+	#if no hash data - revert to checking probability
 	else
-		echo "[!] Password not found"
+		if [[ $line =~ ^_pammodutil.+[0-9]$ ]]; then
+			echo "$line			[LOW]"
+		elif [[ $line =~ ^LOGNAME= ]]; then
+			echo "$line			[LOW]"
+		elif [[ $line =~ UTF\-8 ]]; then
+			echo "$line			[LOW]"
+		elif [[ $line =~ ^splayManager[0-9]$ ]]; then
+			echo "$line			[LOW]"
+		elif [[ $line =~ ^gkr_system_authtok$ ]]; then
+			echo "$line			[LOW]"
+		elif [[ $line =~ [0-9]{1,4}:[0-9]{1,4}: ]]; then
+			echo "$line			[LOW]"
+		elif [[ $line =~ Manager\.Worker ]]; then
+			echo "$line			[LOW]"
+		elif [[ $line =~ \/usr\/share ]]; then
+			echo "$line			[LOW]"
+		elif [[ $line =~ \/bin ]]; then
+			echo "$line			[LOW]"
+		else
+			echo "$line			[HIGH]"
+		fi
 	fi
 done <<< "$DUMP"
 
