@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Author: Hunter Gregal
-# Github: /huntergregal
+# Github: /huntergregal Twitter: /huntergregal Site: huntergregal.com
 # Contribution from pugilist - PID extraction method 
 # Dumps cleartext credentials from memory
 
