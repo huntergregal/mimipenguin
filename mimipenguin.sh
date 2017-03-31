@@ -44,7 +44,9 @@ while read -r line; do
 	if [[ $HASH ]]; then
 		#get ctype
 		CTYPE="$(echo $HASH | cut -c-3)"
-		CRYPT="\"$line\", \"$CTYPE$SALT\""
+		#Escape quotes to pass into crypt
+		SAFE="$(echo $line | sed 's/\"/\\"/g')"
+		CRYPT="\"$SAFE\", \"$CTYPE$SALT\""
 		if [[ `python -c "import crypt; print crypt.crypt($CRYPT)"` == $HASH ]]; then
 			#Find which user's password it is (useful if used more than once!)
 			USER="$(cat /etc/shadow | grep ${HASH} | cut -d':' -f 1)"
@@ -55,7 +57,9 @@ while read -r line; do
 		while read -r thishash; do
 			CTYPE="$(echo $thishash | cut -c-3)"
 			SHADOWSALT="$(echo $thishash | cut -d'$' -f 3)"
-			CRYPT="\"$line\", \"$CTYPE$SHADOWSALT\""
+			#Escape quotes to pass into crypt
+			SAFE="$(echo $line | sed 's/\"/\\"/g')"
+			CRYPT="\"$SAFE\", \"$CTYPE$SHADOWSALT\""
 			if [[ `python -c "import crypt; print crypt.crypt($CRYPT)"` == $thishash ]]; then
 				#Find which user's password it is (useful if used more than once!)
 				USER="$(cat /etc/shadow | grep ${thishash} | cut -d':' -f 1)"
@@ -65,25 +69,33 @@ while read -r line; do
 	#if no hash data - revert to checking probability
 	else
 		if [[ $line =~ ^_pammodutil.+[0-9]$ ]]; then
-			echo "$line			[LOW]"
+			echo "[LOW]			$line"
 		elif [[ $line =~ ^LOGNAME= ]]; then
-			echo "$line			[LOW]"
+			echo "[LOW]			$line"
 		elif [[ $line =~ UTF\-8 ]]; then
-			echo "$line			[LOW]"
+			echo "[LOW]			$line"
 		elif [[ $line =~ ^splayManager[0-9]$ ]]; then
-			echo "$line			[LOW]"
+			echo "[LOW]			$line"
 		elif [[ $line =~ ^gkr_system_authtok$ ]]; then
-			echo "$line			[LOW]"
+			echo "[LOW]			$line"
 		elif [[ $line =~ [0-9]{1,4}:[0-9]{1,4}: ]]; then
-			echo "$line			[LOW]"
+			echo "[LOW]			$line"
 		elif [[ $line =~ Manager\.Worker ]]; then
-			echo "$line			[LOW]"
+			echo "[LOW]			$line"
 		elif [[ $line =~ \/usr\/share ]]; then
-			echo "$line			[LOW]"
+			echo "[LOW]			$line"
 		elif [[ $line =~ \/bin ]]; then
-			echo "$line			[LOW]"
+			echo "[LOW]			$line"
+		elif [[ $line =~ \.so\.[0-1]$ ]]; then
+			echo "[LOW]			$line"
+		elif [[ $line =~ x86_64 ]]; then
+			echo "[LOW]			$line"
+		elif [[ $line =~ (aoao) ]]; then
+			echo "[LOW]			$line"
+		elif [[ $line =~ stuv ]]; then
+			echo "[LOW]			$line"
 		else
-			echo "$line			[HIGH]"
+			echo "[HIGH]			$line"
 		fi
 	fi
 done <<< "$DUMP"
