@@ -2,6 +2,8 @@
 A tool to dump the login password from the current linux desktop user. Adapted after the idea behind the popular Windows tool mimikatz. 
 * Special thanks to pugilist for cleaning up PID extraction and testing.
 
+![alt text](http://i.imgur.com/BkDX9dF.png "MimiPenguin")
+
 # Details
 Takes advantage of the gnome login screen feature by dumping the memory of the process and extracting lines that have a high probability of containing the current user's cleartext password. Will attempt to calculate each word's probability by checking hashes in /etc/shadow.
 Added support for VSFTPD, Apache2 HTTP Basic Auth
