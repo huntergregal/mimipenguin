@@ -17,6 +17,7 @@ Added support for VSFTPD, Apache2 HTTP Basic Auth
 * Ubuntu Desktop 16.04 LTS x64 (Gnome Desktop)
 * VSFTPd 3.0.3-8+b1 (Active FTP client connections)
 * Apache2 2.4.25-3 (Active/Old HTTP BASIC AUTH Sessions)
+* openssh-server 1:7.3p1-1 (Active SSH connections - sudo usage)
 
 # Notes
 * Password moves in memory - still honing in on 100% effectiveness
