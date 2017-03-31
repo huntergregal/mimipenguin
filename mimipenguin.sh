@@ -112,6 +112,7 @@ if [[ `uname -a | awk '{print tolower($0)}'` == *"ubuntu"* ]]; then
         HASH="$(strings "/tmp/dump.${PID}" | egrep -m 1 '^\$.\$.+$')"
         SALT="$(echo $HASH | cut -d'$' -f 3)"
         DUMP=$(strings "/tmp/dump.${PID}" | egrep '^.+libgck\-1\.so\.0$' -B 10 -A 10)
+        DUMP+=$(strings "/tmp/dump.${PID}" | egrep -A 5 -B 5 'libgcrypt\.so\..+$')
 	parse_pass "$DUMP" "$HASH" "$SALT" "$SOURCE" 
 	
 	#cleanup
