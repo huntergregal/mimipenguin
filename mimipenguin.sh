@@ -19,8 +19,13 @@ dump_pid ()
 	system=$3
 	pid=$1
 	output_file=$2
-	grep -E "^[0-9a-f-]* r" /proc/$pid/maps | cut -d' ' -f 1 |
+	if [[ $system == "kali" ]]; then
+		mem_maps=$(grep -E "^[0-9a-f-]* r" /proc/$pid/maps | egrep 'heap|stack' | cut -d' ' -f 1)
+	else
+		mem_maps=$(grep -E "^[0-9a-f-]* r" /proc/$pid/maps | cut -d' ' -f 1)
+	fi
 	while read -r memrange; do
+		echo $memrange
 		memrange_start=`echo $memrange | cut -d"-" -f 1`;
 		memrange_start=`printf "%u\n" 0x$memrange_start`;
 		memrange_stop=`echo $memrange | cut -d"-" -f 2`;
@@ -28,7 +33,7 @@ dump_pid ()
 		memrange_size=$(($memrange_stop - $memrange_start));
 		dd if=/proc/$pid/mem of=${output_file}.${pid} ibs=1 oflag=append conv=notrunc \
 			skip=$memrange_start count=$memrange_size > /dev/null 2>&1
-	done;
+	done <<< "$mem_maps"
 }
 
 parse_pass ()
