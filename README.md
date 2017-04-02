@@ -1,5 +1,5 @@
 # mimipenguin
-A tool to dump the login password from the current linux desktop user. Adapted after the idea behind the popular Windows tool mimikatz. 
+A tool to dump the login password from the current linux desktop user. Adapted from the idea behind the popular Windows tool mimikatz. 
 * Special thanks to pugilist for cleaning up PID extraction and testing.
 
 ![alt text](http://i.imgur.com/BkDX9dF.png "MimiPenguin")
