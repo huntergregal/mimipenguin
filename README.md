@@ -39,3 +39,5 @@ CC BY 4.0 licence - https://creativecommons.org/licenses/by/4.0/
 * pugilist for cleaning up PID extraction and testing
 * ianmiell for cleaning up some of my messy code
 * w0rm for identifying printf error when special chars are involved
+* benichmt1 for identifying multiple authenticate users issue
+* ChaitanyaHaritash for identifying special char edge case issues
