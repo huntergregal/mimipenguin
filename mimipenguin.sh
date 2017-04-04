@@ -153,7 +153,7 @@ fi
 if [[ -e "/etc/apache2/apache2.conf" ]]; then
 		SOURCE="[HTTP BASIC - APACHE2]"
 		#get all apache workers /usr/sbin/apache2 -k start
-		PID="$(ps -eo pid,user,command | grep apache2 | grep -v 'grep' | awk 'BEGIN {FS = " " } ; { print "$1" }')"
+		PID="$(ps -eo pid,user,command | grep apache2 | grep -v 'grep' | awk 'BEGIN {FS = " " } ; { print $1 }')"
 	#if exists aka apache2 running
 	if [[ "$PID" ]];then
 		#Dump all workers
