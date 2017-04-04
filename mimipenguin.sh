@@ -200,5 +200,5 @@ if [[ -e "/etc/ssh/sshd_config" ]]; then
 fi
 #Output results to STDOUT
 printf "MimiPenguin Results:\n"
-printf "$RESULTS" | sort -u
+printf "%b" "$RESULTS" | sort -u
 unset RESULTS
