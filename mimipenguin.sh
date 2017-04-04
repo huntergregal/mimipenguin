@@ -2,7 +2,6 @@
 
 # Author: Hunter Gregal
 # Github: /huntergregal Twitter: /huntergregal Site: huntergregal.com
-# Contribution from pugilist - PID extraction method 
 # Dumps cleartext credentials from memory
 
 #root check
