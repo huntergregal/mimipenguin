@@ -35,6 +35,7 @@ Takes advantage of cleartext credentials in memory by dumping the process and ex
 CC BY 4.0 licence - https://creativecommons.org/licenses/by/4.0/
 
 ## Special Thanks 
+* the-useless-one for remove Gcore as a dependency, cleaning up tabs, and adding output option
 * gentilkiki for Mimikatz, the inspiration and the twitter shoutout
 * pugilist for cleaning up PID extraction and testing
 * ianmiell for cleaning up some of my messy code
