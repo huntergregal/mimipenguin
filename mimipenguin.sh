@@ -190,7 +190,7 @@ if [[ -e "/etc/apache2/apache2.conf" ]]; then
 			fi
 		done <<< "$DUMP"
 		#cleanup
-		#rm -rf /tmp/apache*
+		rm -rf /tmp/apache*
 	fi
 fi
 
