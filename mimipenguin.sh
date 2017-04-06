@@ -25,7 +25,6 @@ dump_pid ()
 		mem_maps=$(grep -E "^[0-9a-f-]* r" /proc/$pid/maps | cut -d' ' -f 1)
 	fi
 	while read -r memrange; do
-		echo $memrange
 		memrange_start=`echo $memrange | cut -d"-" -f 1`;
 		memrange_start=`printf "%u\n" 0x$memrange_start`;
 		memrange_stop=`echo $memrange | cut -d"-" -f 2`;
