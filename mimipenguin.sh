@@ -74,35 +74,25 @@ while read -r line; do
 		done <<< "$SHADOWHASHES"
 	#if no hash data - revert to checking probability
 	else
-		if [[ $line =~ ^_pammodutil.+[0-9]$ ]]; then
-			export RESULTS="$RESULTS[LOW]$4			$line\n"
-		elif [[ $line =~ ^LOGNAME= ]]; then
-			export RESULTS="$RESULTS[LOW]$4			$line\n"
-		elif [[ $line =~ UTF-8 ]]; then
-			export RESULTS="$RESULTS[LOW]$4			$line\n"
-		elif [[ $line =~ ^splayManager[0-9]$ ]]; then
-			export RESULTS="$RESULTS[LOW]$4			$line\n"
-		elif [[ $line =~ ^gkr_system_authtok$ ]]; then
-			export RESULTS="$RESULTS[LOW]$4			$line\n"
-		elif [[ $line =~ [0-9]{1,4}:[0-9]{1,4}: ]]; then
-			export RESULTS="$RESULTS[LOW]$4			$line\n"
-		elif [[ $line =~ Manager\.Worker ]]; then
-			export RESULTS="$RESULTS[LOW]$4			$line\n"
-		elif [[ $line =~ /usr/share ]]; then
-			export RESULTS="$RESULTS[LOW]$4			$line\n"
-		elif [[ $line =~ /bin ]]; then
-			export RESULTS="$RESULTS[LOW]$4			$line\n"
-		elif [[ $line =~ \.so\.[0-1]$ ]]; then
-			export RESULTS="$RESULTS[LOW]$4			$line\n"
-		elif [[ $line =~ x86_64 ]]; then
-			export RESULTS="$RESULTS[LOW]$4			$line\n"
-		elif [[ $line =~ (aoao) ]]; then
-			export RESULTS="$RESULTS[LOW]$4			$line\n"
-		elif [[ $line =~ stuv ]]; then
-			export RESULTS="$RESULTS[LOW]$4			$line\n"
-		else
-			export RESULTS="$RESULTS[HIGH]$4			$line\n"
-		fi
+    patters=("^_pammodutil.+[0-9]$"\
+             "^LOGNAME="\
+             "UTF-8"\
+             "^splayManager[0-9]$"\
+             "^gkr_system_authtok$"\
+             "[0-9]{1,4}:[0-9]{1,4}:"\
+             "Manager\.Worker"\
+             "/usr/share"\
+             "/bin"\
+             "\.so\.[0-1]$"\
+             "x86_64"\
+             "(aoao)"\
+             "stuv")
+    export RESULTS="$RESULTS[HIGH]$4			$line\n"
+    for pattern in $patters;do
+      if [[ $line =~ $pattern ]]; then
+        export RESULTS="$RESULTS[LOW]$4			$line\n"
+      fi
+    done
 	fi
 done <<< "$1"
 }
