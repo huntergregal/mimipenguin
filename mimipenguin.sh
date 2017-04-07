@@ -74,7 +74,7 @@ while read -r line; do
 		done <<< "$SHADOWHASHES"
 	#if no hash data - revert to checking probability
 	else
-    patters=("^_pammodutil.+[0-9]$"\
+    patterns=("^_pammodutil.+[0-9]$"\
              "^LOGNAME="\
              "UTF-8"\
              "^splayManager[0-9]$"\
@@ -88,7 +88,7 @@ while read -r line; do
              "(aoao)"\
              "stuv")
     export RESULTS="$RESULTS[HIGH]$4			$line\n"
-    for pattern in $patters;do
+    for pattern in $patterns;do
       if [[ $line =~ $pattern ]]; then
         export RESULTS="$RESULTS[LOW]$4			$line\n"
       fi
