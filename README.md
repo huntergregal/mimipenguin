@@ -42,3 +42,4 @@ CC BY 4.0 licence - https://creativecommons.org/licenses/by/4.0/
 * w0rm for identifying printf error when special chars are involved
 * benichmt1 for identifying multiple authenticate users issue
 * ChaitanyaHaritash for identifying special char edge case issues
+* ImAWizardLizard for cleaning up the pattern matches with a for loop
