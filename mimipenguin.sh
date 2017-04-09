@@ -53,7 +53,7 @@ while read -r line; do
 		#Escape quotes, backslashes, single quotes to pass into crypt
 		SAFE=$(echo "$line" | sed 's/\\/\\\\/g; s/\"/\\"/g; s/'"'"'/\\'"'"'/g;')
 		CRYPT="\"$SAFE\", \"$CTYPE$3\""
-		if [[ $(python -c "import crypt; print crypt.crypt($CRYPT)") == "$2" ]]; then
+		if [[ $(python2 -c "import crypt; print crypt.crypt($CRYPT)") == "$2" ]]; then
 			#Find which user's password it is (useful if used more than once!)
 			USER="$(grep "${2}" /etc/shadow | cut -d':' -f 1)"
 			export RESULTS="$RESULTS$4			$USER:$line \n"
@@ -66,7 +66,7 @@ while read -r line; do
 			#Escape quotes, backslashes, single quotes to pass into crypt
 			SAFE=$(echo "$line" | sed 's/\\/\\\\/g; s/\"/\\"/g; s/'"'"'/\\'"'"'/g;')
 			CRYPT="\"$SAFE\", \"$CTYPE$SHADOWSALT\""
-			if [[ $(python -c "import crypt; print crypt.crypt($CRYPT)") == "$thishash" ]]; then
+			if [[ $(python2 -c "import crypt; print crypt.crypt($CRYPT)") == "$thishash" ]]; then
 				#Find which user's password it is (useful if used more than once!)
 				USER="$(grep "${thishash}" /etc/shadow | cut -d':' -f 1)"
 				export RESULTS="$RESULTS$4			$USER:$line\n"
