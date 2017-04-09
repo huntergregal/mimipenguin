@@ -101,7 +101,7 @@ done <<< "$1"
 if [[ $(uname -a | awk '{print tolower($0)}') == *"kali"* ]]; then
 	SOURCE="[SYSTEM - GNOME]"
 	#get gdm-session-worker [pam/gdm-password] process
-	PID="$(ps -eo pid,command | sed -rn '/gdm-password\]/p' | awk 'BEGIN {FS = " " } ; { print $1 }')"
+	PID="$(ps -eo pid,command | sed -rn '/gdm-password\]/p' | awk -F ' ' '{ print $1 }')"
 	#if exists aka someone logged into gnome then extract...
 	if [[ $PID ]];then
 		while read -r pid; do
@@ -120,11 +120,13 @@ if [[ $(uname -a | awk '{print tolower($0)}') == *"kali"* ]]; then
 	fi
 fi
 
-#Support Ubuntu
-if [[ $(uname -a | awk '{print tolower($0)}') == *"ubuntu"* ]]; then
+#Support gnome-keyring
+if [[ -n $(ps -eo pid,command | grep -v 'grep' | grep gnome-keyring) ]]; then
+
 		SOURCE="[SYSTEM - GNOME]"
 		#get /usr/bin/gnome-keyring-daemon process
-		PID="$(ps -eo pid,command | sed -rn '/gnome\-keyring\-daemon/p' | awk 'BEGIN {FS = " " } ; { print $1 }')"
+		PID="$(ps -eo pid,command | sed -rn '/gnome\-keyring\-daemon/p' | awk -F ' ' '{ print $1 }')"
+
 	#if exists aka someone logged into gnome then extract...
 	if [[ $PID ]];then
 		while read -r pid; do
@@ -146,7 +148,7 @@ fi
 if [[ -e "/etc/vsftpd.conf" ]]; then
 		SOURCE="[SYSTEM - VSFTPD]"
 		#get nobody /usr/sbin/vsftpd /etc/vsftpd.conf
-		PID="$(ps -eo pid,user,command | grep vsftpd | grep nobody | awk 'BEGIN {FS = " " } ; { print $1 }')"
+		PID="$(ps -eo pid,user,command | grep vsftpd | grep nobody | awk -F ' ' '{ print $1 }')"
 	#if exists aka someone logged into FTP then extract...
 	if [[ $PID ]];then
 		while read -r pid; do
@@ -168,7 +170,7 @@ fi
 if [[ -e "/etc/apache2/apache2.conf" ]]; then
 		SOURCE="[HTTP BASIC - APACHE2]"
 		#get all apache workers /usr/sbin/apache2 -k start
-		PID="$(ps -eo pid,user,command | grep apache2 | grep -v 'grep' | awk 'BEGIN {FS = " " } ; { print $1 }')"
+		PID="$(ps -eo pid,user,command | grep apache2 | grep -v 'grep' | awk -F ' ' '{ print $1 }')"
 	#if exists aka apache2 running
 	if [[ "$PID" ]];then
 		#Dump all workers
@@ -195,7 +197,7 @@ fi
 if [[ -e "/etc/ssh/sshd_config" ]]; then
 	SOURCE="[SYSTEM - SSH]"
 	#get all ssh tty/pts sessions - sshd: user@pts01
-	PID="$(ps -eo pid,command | egrep 'sshd:.+@' | grep -v 'grep' | awk 'BEGIN {FS = " " } ; { print $1 }')"
+	PID="$(ps -eo pid,command | egrep 'sshd:.+@' | grep -v 'grep' | awk -F ' ' '{ print $1 }')"
 	#if exists aka someone logged into SSH then dump
 	if [[ "$PID" ]];then
 		while read -r pid; do
