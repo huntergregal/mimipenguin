@@ -44,3 +44,4 @@ CC BY 4.0 licence - https://creativecommons.org/licenses/by/4.0/
 * benichmt1 for identifying multiple authenticate users issue
 * ChaitanyaHaritash for identifying special char edge case issues
 * ImAWizardLizard for cleaning up the pattern matches with a for loop
+* coreb1t for python3 checks, arch support, other fixes
