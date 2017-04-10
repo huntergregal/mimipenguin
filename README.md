@@ -9,11 +9,12 @@ Takes advantage of cleartext credentials in memory by dumping the process and ex
 ## Requires
 * root permissions
 
-## Supported/Tested
+## Supported/Tested Systems
 * Kali 4.3.0 (rolling) x64 (gdm3)
 * Ubuntu Desktop 12.04 LTS x64 (Gnome Keyring 3.18.3-0ubuntu2)
 * Ubuntu Desktop 16.04 LTS x64 (Gnome Keyring 3.18.3-0ubuntu2)
 * XUbuntu Desktop 16.04 x64 (Gnome Keyring 3.18.3-0ubuntu2)
+* Archlinux x64 Gnome 3 (Gnome Keyring 3.20)
 * VSFTPd 3.0.3-8+b1 (Active FTP client connections)
 * Apache2 2.4.25-3 (Active/Old HTTP BASIC AUTH Sessions) [Gcore dependency]
 * openssh-server 1:7.3p1-1 (Active SSH connections - sudo usage)
