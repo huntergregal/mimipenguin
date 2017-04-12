@@ -36,7 +36,7 @@ Takes advantage of cleartext credentials in memory by dumping the process and ex
 CC BY 4.0 licence - https://creativecommons.org/licenses/by/4.0/
 
 ## Special Thanks 
-* the-useless-one for remove Gcore as a dependency, cleaning up tabs, and adding output option
+* the-useless-one for remove Gcore as a dependency, cleaning up tabs, adding output option, and a full python3 port
 * gentilkiki for Mimikatz, the inspiration and the twitter shoutout
 * pugilist for cleaning up PID extraction and testing
 * ianmiell for cleaning up some of my messy code
@@ -45,3 +45,4 @@ CC BY 4.0 licence - https://creativecommons.org/licenses/by/4.0/
 * ChaitanyaHaritash for identifying special char edge case issues
 * ImAWizardLizard for cleaning up the pattern matches with a for loop
 * coreb1t for python3 checks, arch support, other fixes
+* n1nj4sec for a python2 port and support
