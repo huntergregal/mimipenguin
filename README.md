@@ -37,7 +37,7 @@ CC BY 4.0 licence - https://creativecommons.org/licenses/by/4.0/
 
 ## Special Thanks 
 * the-useless-one for remove Gcore as a dependency, cleaning up tabs, adding output option, and a full python3 port
-* gentilkiki for Mimikatz, the inspiration and the twitter shoutout
+* gentilwiki for Mimikatz, the inspiration and the twitter shoutout
 * pugilist for cleaning up PID extraction and testing
 * ianmiell for cleaning up some of my messy code
 * w0rm for identifying printf error when special chars are involved
