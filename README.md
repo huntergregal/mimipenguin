@@ -9,13 +9,14 @@ Takes advantage of cleartext credentials in memory by dumping the process and ex
 ## Requires
 * root permissions
 
-## Supported/Tested
+## Supported/Tested Systems
 * Kali 4.3.0 (rolling) x64 (gdm3)
 * Ubuntu Desktop 12.04 LTS x64 (Gnome Keyring 3.18.3-0ubuntu2)
 * Ubuntu Desktop 16.04 LTS x64 (Gnome Keyring 3.18.3-0ubuntu2)
 * XUbuntu Desktop 16.04 x64 (Gnome Keyring 3.18.3-0ubuntu2)
+* Archlinux x64 Gnome 3 (Gnome Keyring 3.20)
 * VSFTPd 3.0.3-8+b1 (Active FTP client connections)
-* Apache2 2.4.25-3 (Active/Old HTTP BASIC AUTH Sessions)
+* Apache2 2.4.25-3 (Active/Old HTTP BASIC AUTH Sessions) [Gcore dependency]
 * openssh-server 1:7.3p1-1 (Active SSH connections - sudo usage)
 
 ## Notes
@@ -35,9 +36,12 @@ Takes advantage of cleartext credentials in memory by dumping the process and ex
 CC BY 4.0 licence - https://creativecommons.org/licenses/by/4.0/
 
 ## Special Thanks 
+* the-useless-one for remove Gcore as a dependency, cleaning up tabs, and adding output option
 * gentilkiki for Mimikatz, the inspiration and the twitter shoutout
 * pugilist for cleaning up PID extraction and testing
 * ianmiell for cleaning up some of my messy code
 * w0rm for identifying printf error when special chars are involved
 * benichmt1 for identifying multiple authenticate users issue
 * ChaitanyaHaritash for identifying special char edge case issues
+* ImAWizardLizard for cleaning up the pattern matches with a for loop
+* coreb1t for python3 checks, arch support, other fixes
