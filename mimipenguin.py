@@ -30,7 +30,7 @@ def running_as_root():
 
 def get_linux_distribution():
     try:
-        return in platform.dist()[0].lower()
+        return platform.dist()[0].lower()
     except IndexError:
         return str()
 
