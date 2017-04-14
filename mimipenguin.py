@@ -215,7 +215,7 @@ def main():
     if 'kali' in get_linux_distribution():
         password_finders.append(KaliDesktopPasswordFinder())
     if 'ubuntu' in get_linux_distribution():
-        password_finders.append(KaliDesktopPasswordFinder())
+        password_finders.append(UbuntuDesktopPasswordFinder())
     if os.path.isfile('/etc/vsftpd.conf'):
         password_finders.append(VsftpdPasswordFinder())
     if os.path.isfile('/etc/ssh/sshd_config'):
