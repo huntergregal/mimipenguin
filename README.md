@@ -27,6 +27,18 @@ Takes advantage of cleartext credentials in memory by dumping the process and ex
 * Open to pull requests and community research
 * LDAP research (nscld winbind etc) planned for future
 
+## Development Roadmap
+MimiPenguin is slowly being ported to multiple languages to support all possible post-exploit scenarios. The roadmap below was suggested by KINGSABRI to track the various versions and features. An "X" denotes full support while a "~" denotes a feature with known bugs.
+
+| Feature                                    | .sh | .py |
+|--------------------------------------------|-----|-----|
+| Kali Desktop Password (gdm3)               | X   | X   |
+| Ubuntu Desktop Password (Gnome Keyring)    | X   | X   |
+| Arch Desktop Password (Gnome Keyring)      | X   |     |
+| VSFTPd (Active FTP Connections)            | X   | X   |
+| Apache2 (Active HTTP Basic Auth Sessions)  | ~   | ~   |
+| OpenSSH (Active SSH Sessions - Sudo Usage) | ~   | ~   |
+
 ## Contact
 * Twitter: [@huntergregal](https://twitter.com/HunterGregal)
 * Website: [huntergregal.com](http://huntergregal.com)
@@ -46,3 +58,4 @@ CC BY 4.0 licence - https://creativecommons.org/licenses/by/4.0/
 * ImAWizardLizard for cleaning up the pattern matches with a for loop
 * coreb1t for python3 checks, arch support, other fixes
 * n1nj4sec for a python2 port and support
+* KINGSABRI for the Roadmap proposal
