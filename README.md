@@ -59,3 +59,4 @@ CC BY 4.0 licence - https://creativecommons.org/licenses/by/4.0/
 * coreb1t for python3 checks, arch support, other fixes
 * n1nj4sec for a python2 port and support
 * KINGSABRI for the Roadmap proposal
+* bourgouinadrien for linking https://github.com/koalaman/shellcheck
