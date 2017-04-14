@@ -32,7 +32,7 @@ function dump_pid () {
 		memrange_stop=$(echo "$memrange" | cut -d"-" -f 2)
 		memrange_stop=$(printf "%u\n" 0x"$memrange_stop")
 		memrange_size=$((memrange_stop - memrange_start))
-		dd if=/proc/$pid/mem of="${output_file}"."${pid}" ibs=1 oflag=append conv=notrunc \
+		dd if=/proc/"$pid"/mem of="${output_file}"."${pid}" ibs=1 oflag=append conv=notrunc \
 			skip="$memrange_start" count="$memrange_size" > /dev/null 2>&1
 	done <<< "$mem_maps"
 }
