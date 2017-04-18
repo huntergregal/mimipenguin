@@ -34,7 +34,7 @@ MimiPenguin is slowly being ported to multiple languages to support all possible
 |--------------------------------------------|-----|-----|
 | Kali Desktop Password (gdm3)               | X   | X   |
 | Ubuntu Desktop Password (Gnome Keyring)    | X   | X   |
-| Arch Desktop Password (Gnome Keyring)      | X   |     |
+| Arch Desktop Password (Gnome Keyring)      | X   | X   |
 | VSFTPd (Active FTP Connections)            | X   | X   |
 | Apache2 (Active HTTP Basic Auth Sessions)  | ~   | ~   |
 | OpenSSH (Active SSH Sessions - Sudo Usage) | ~   | ~   |
