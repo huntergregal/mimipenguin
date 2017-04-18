@@ -193,7 +193,7 @@ class ApachePasswordFinder(PasswordFinder):
                 continue
             else:
                 try:
-                    user, password = potential_password.split(':')[:2]
+                    user, password = potential_password.split(':', maxsplit=1)
                     valid_passwords.append((user, password))
                 except IndexError:
                     continue
