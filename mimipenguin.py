@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+#   -*- encoding: utf8 -*-
 #   Rewrite of mimipenguin in Python 3.
 #   Original idea from Hunter Gregal (@huntergregal).
 #   Implementation by Yannick Méheut (github.com/the-useless-one)
@@ -16,6 +17,8 @@
 
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+from __future__ import print_function
 
 import os
 import platform
@@ -42,7 +45,11 @@ def strings(s, min_length=4):
     result = str()
 
     for c in s:
-        c = chr(c)
+        try:
+            c = chr(c)
+        except TypeError:
+            # In Python 2, c is already a chr
+            pass
         if c in string.printable:
             result += c
         else:
@@ -65,7 +72,7 @@ def dump_process(pid):
                     try:
                         mem_file.seek(memrange_start)
                         dump_result += mem_file.read(memrange_size)
-                    except (OSError, ValueError):
+                    except (OSError, ValueError, IOError, OverflowError):
                         pass
 
     return dump_result
