@@ -1,6 +1,3 @@
-Hi, thank you for reporting issues to us. 
-Tip: If you're reporting a bug, remove the feature request section for your convenience. 
-
 ## Bug report
 
 Write a description 
