@@ -37,7 +37,7 @@ MimiPenguin is slowly being ported to multiple languages to support all possible
 |---------------------------------------------------|-----|-----|
 | GDM password (Kali Desktop, Debian Desktop)       | ~   | X   |
 | Gnome Keyring (Ubuntu Desktop, ArchLinux Desktop) | X   | X   |
-| LightDM (Ubuntu Desktop)                          | X   |     |
+| LightDM (Ubuntu Desktop)                          | X   | X   |
 | VSFTPd (Active FTP Connections)                   | X   | X   |
 | Apache2 (Active HTTP Basic Auth Sessions)         | ~   | ~   |
 | OpenSSH (Active SSH Sessions - Sudo Usage)        | ~   | ~   |
