@@ -7,7 +7,7 @@
 
 //Constants
 #define ATTS_SIZE 5
-
+#define MAPS "/proc/%d/maps"
 
 /* Public processing function. Used to process the memory for all targets and pids */
 void processTargets(Target targets[MAX_TARGETS]);

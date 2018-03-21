@@ -17,14 +17,14 @@ typedef struct {
 
 /* Needles struct to handle list of needles*/
 typedef struct {
-    const char *needles[MAX_NEEDLES]; //regex patterns
+    char *needles[MAX_NEEDLES]; //regex patterns
     size_t size;
 } Needles;
 
 /* Target processes struct */
 typedef struct {
-    const char name[MAX_NAME_SIZE]; //Process name
-    const char source[MAX_SOURCE_SIZE];
+    char name[MAX_NAME_SIZE]; //Process name
+    char source[MAX_SOURCE_SIZE];
     Pids pids; //All Pids associated with process/service
     Needles needles; //regex patterns
 } Target;

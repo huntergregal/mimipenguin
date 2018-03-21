@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <string.h>
 
 void processTargets(Target targets[MAX_TARGETS])
 {
@@ -51,7 +52,7 @@ void processMemory(Target target, pid_t pid)
     }
 
     //Read maps
-    snprintf(path, sizeof(path), "/proc/%d/maps", pid);
+    snprintf(path, sizeof(path), MAPS, pid);
     maps = fopen(path, "r");
 
     //Read memory
@@ -68,7 +69,7 @@ void processMemory(Target target, pid_t pid)
         {
             off_t start, end;
 
-            sscanf(buf, "%llx-%llx %s", &start, &end, atts);
+            sscanf(buf, "%lx-%lx %s", &start, &end, atts);
             if (strstr(atts, "r") != NULL) //If region readable
                 processRegion(mem, start, end);
         }

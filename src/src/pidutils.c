@@ -2,17 +2,19 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
+#include <fnmatch.h>
+#include <string.h>
 
 void getTargetPids(Target targets[MAX_TARGETS])
 {
-    const DIR *dirp;
+    DIR *dirp;
     struct dirent *dp;
     int pidSize;
     char fileName[MAX_FNAME_SIZE], buf[BUFSIZ];
     FILE *fp;
     
     // Open process Dir
-    if ((dirp = opendir("/proc")) == 0)
+    if ((dirp = opendir(PROC)) == 0)
     {
         printf("/proc Access Denied!\n");
         exit(EXIT_FAILURE);
@@ -26,7 +28,7 @@ void getTargetPids(Target targets[MAX_TARGETS])
             continue;
 
         // Get process name
-        snprintf(fileName, MAX_FNAME_SIZE, "/proc/%s/cmdline", dp->d_name);
+        snprintf(fileName, MAX_FNAME_SIZE, CMDLINE, dp->d_name);
         fp = fopen(fileName, "r");
         if (fp == NULL)
         {

@@ -6,6 +6,8 @@
 
 //Constants
 #define MAX_FNAME_SIZE 32
+#define PROC "/proc/"
+#define CMDLINE "/proc/%s/cmdline"
 
 /* Filter to identify /proc/ subdirs as PIDs */
 static int filter(const struct dirent *dir);

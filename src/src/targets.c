@@ -17,15 +17,15 @@ void initTargets(Target targets[MAX_TARGETS])
     strncpy(targets[1].source, "[SYSTEM - GNOME]", MAX_SOURCE_SIZE);
     targets[1].pids.size = 0;
     targets[1].needles.size = 2;
-    targets[1].needles.needles[0] = "^+libgck\-1.so\.0$";
-    targets[1].needles.needles[1] = "libgcrypt\.so\..+$";
+    targets[1].needles.needles[0] = "^+libgck\\-1.so\\.0$";
+    targets[1].needles.needles[1] = "libgcrypt\\.so\\..+$";
 
     //VSFTPD
     strncpy(targets[2].name, "vsftpd", MAX_NAME_SIZE);
     strncpy(targets[2].source, "[SYSTEM - VSFTPD]", MAX_SOURCE_SIZE);
     targets[2].pids.size = 0;
     targets[2].needles.size = 1;
-    targets[2].needles.needles[0] = "^::.+\:[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$";
+    targets[2].needles.needles[0] = "^::.+\\:[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}$";
 
     //SSHD
     strncpy(targets[3].name, "sshd:", MAX_NAME_SIZE);
