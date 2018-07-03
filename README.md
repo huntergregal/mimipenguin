@@ -1,3 +1,6 @@
+# DEV NOTES
+* `x/s *(char**)0x6f7158+32` 0x6f7158 potential address of session structure? `TODO`
+
 # mimipenguin
 A tool to dump the login password from the current linux desktop user. Adapted from the idea behind the popular Windows tool mimikatz. 
 
