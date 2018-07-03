@@ -63,3 +63,4 @@ CC BY 4.0 licence - https://creativecommons.org/licenses/by/4.0/
 * n1nj4sec for a python2 port and support
 * KINGSABRI for the Roadmap proposal
 * bourgouinadrien for linking https://github.com/koalaman/shellcheck
+* bcoles for adding more needles and work on a metasploit module ruby port
