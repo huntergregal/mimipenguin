@@ -42,6 +42,12 @@ MimiPenguin is slowly being ported to multiple languages to support all possible
 | Apache2 (Active HTTP Basic Auth Sessions)         | ~   | ~   |
 | OpenSSH (Active SSH Sessions - Sudo Usage)        | ~   | ~   |
 
+# C Port of Mimipenguin
+This port is a PoC for a much more efficient way to extract clear text passwords from gnome login managers using know structure offsets/addresses in memory and PTRACE. This version currently doesn't show which user the password is for - but such a feature is trivial.
+* Only tested on :
+ * `Linux null 4.4.0-116-generic #140-Ubuntu SMP Mon Feb 12 21:23:04 UTC 2018 x86_64 x86_64 x86_64 GNU/Linux` (Ubuntu 16.04.4 LTS)
+ * `gnome-keyring-daemon: 3.18.3` 
+
 ## Contact
 * Twitter: [@huntergregal](https://twitter.com/HunterGregal)
 * Website: [huntergregal.com](http://huntergregal.com)
