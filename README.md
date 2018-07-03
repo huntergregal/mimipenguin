@@ -1,5 +1,5 @@
 # DEV NOTES
-* `x/s *(char**)0x6f7158+32` 0x6f7158 potential address of session structure? `TODO`
+* `x/s *(char**)0x6f7158+32` 0x6f7158 potential address of session structure in gnome-keyring-daemon? `gnome-keyring-daemon: 3.18.3` `TODO`
 
 # mimipenguin
 A tool to dump the login password from the current linux desktop user. Adapted from the idea behind the popular Windows tool mimikatz. 
