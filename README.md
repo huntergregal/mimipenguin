@@ -22,12 +22,6 @@ Takes advantage of cleartext credentials in memory by dumping the process and ex
 * Apache2 2.4.25-3 (Active/Old HTTP BASIC AUTH Sessions) [Gcore dependency]
 * openssh-server 1:7.3p1-1 (Active SSH connections - sudo usage)
 
-## C Port of Mimipenguin
-This port is a PoC for a much more efficient way to extract clear text passwords from gnome login managers using know structure offsets/addresses in memory and PTRACE. This version currently doesn't show which user the password is for - but such a feature is trivial.
-* Only tested on :
- * `Linux null 4.4.0-116-generic #140-Ubuntu SMP Mon Feb 12 21:23:04 UTC 2018 x86_64 x86_64 x86_64 GNU/Linux` (Ubuntu 16.04.4 LTS)
- * `gnome-keyring-daemon: 3.18.3` 
- 
 ## Notes
 * Password moves in memory - still honing in on 100% effectiveness
 * Plan on expanding support and other credential locations
