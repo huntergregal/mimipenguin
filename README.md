@@ -14,7 +14,7 @@ Takes advantage of cleartext credentials in memory by dumping the process and ex
 * Ubuntu Desktop 12.04 LTS x64 (Gnome Keyring 3.18.3-0ubuntu2)
 * Ubuntu Desktop 14.04.1 LTS x64 (Gnome Keyring 3.10.1-1ubuntu4.3, LightDM 1.10.6-0ubuntu1)
 * Ubuntu Desktop 16.04 LTS x64 (Gnome Keyring 3.18.3-0ubuntu2)
-* Ubuntu Desktop 16.04.4 LTS x64 (LightDM 1.18.3-0ubuntu1.1)
+* Ubuntu Desktop 16.04.4 LTS x64 (Gnome Keyring 3.18.3-0ubuntu2, LightDM 1.18.3-0ubuntu1.1)
 * XUbuntu Desktop 16.04 x64 (Gnome Keyring 3.18.3-0ubuntu2)
 * Archlinux x64 Gnome 3 (Gnome Keyring 3.20)
 * OpenSUSE Leap 42.2 x64 (Gnome Keyring 3.20)
@@ -36,7 +36,7 @@ MimiPenguin is slowly being ported to multiple languages to support all possible
 | Feature                                           | .sh | .py |
 |---------------------------------------------------|-----|-----|
 | GDM password (Kali Desktop, Debian Desktop)       | ~   | X   |
-| Gnome Keyring (Ubuntu Desktop, ArchLinux Desktop) | X   | X   |
+| Gnome Keyring (Ubuntu Desktop, ArchLinux Desktop) | ~   | X   |
 | LightDM (Ubuntu Desktop)                          | X   | X   |
 | VSFTPd (Active FTP Connections)                   | X   | X   |
 | Apache2 (Active HTTP Basic Auth Sessions)         | ~   | ~   |

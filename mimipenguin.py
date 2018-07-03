@@ -181,7 +181,7 @@ class GnomeKeyringPasswordFinder(PasswordFinder):
         PasswordFinder.__init__(self)
         self._source_name = '[SYSTEM - GNOME]'
         self._target_processes = ['gnome-keyring-daemon']
-        self._needles = [r'^.+libgck\-1\.so\.0$', r'libgcrypt\.so\..+$']
+        self._needles = [r'^.+libgck\-1\.so\.0$', r'libgcrypt\.so\..+$', r'linux-vdso\.so\.1$']
 
 class LightDmPasswordFinder(PasswordFinder):
     def __init__(self):
