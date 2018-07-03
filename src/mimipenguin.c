@@ -152,7 +152,7 @@ int dumpPasswdKeyring(Target target, int pid)
 
     if (passwd)
     {
-        printf("  %s:%s\n", user, passwd);
+        printf("  [-] %s:%s\n", user, passwd);
         return 0;
     }
     else
