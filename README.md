@@ -11,7 +11,7 @@ This version of Mimipenguin sacrifices features and coverage (as opposed to the 
 * a supported target
 
 ## Supported
-| OS                           |   Service                        | Supprted          |
+| OS                           |   Service                        | Supported          |
 |------------------------------|----------------------------------|-------------------|
 | Ubuntu Desktop 12.04 LTS x64 | gnome-keyring-daemon (3.18.3)    | :heavy_check_mark: |
 | Ubuntu Desktop 16.04 LTS x64 | gnome-keyring-daemon (3.18.3)    | :heavy_check_mark: |
