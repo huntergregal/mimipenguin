@@ -13,6 +13,7 @@ This version of Mimipenguin sacrifices features and coverage (as opposed to the 
 |------------------------------|----------------------------------|-------------------|
 | Ubuntu Desktop 12.04 LTS x64 | gnome-keyring-daemon (3.18.3)    | :heavy_check_mark: |
 | Ubuntu Desktop 16.04 LTS x64 | gnome-keyring-daemon (3.18.3)    | :heavy_check_mark: |
+| Kali-rolling x64             | gnome-keyring-daemon (3.28.0.2)  | :heavy_check_mark: |
 
 ## Contact
 * Twitter: [@huntergregal](https://twitter.com/HunterGregal)
