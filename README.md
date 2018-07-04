@@ -1,6 +1,8 @@
 # Mimipenguin beta-2.0
 A tool to dump the login password from the current linux desktop user. Adapted from the idea behind the popular Windows tool mimikatz. 
 
+![alt text](https://i.imgur.com/pwP8vRh.png "MimiPenguin")
+
 ## Details
 This version of Mimipenguin sacrifices features and coverage (as opposed to the beta-1.0 py and sh scripts) in favor of speed and efficiency. Beta 2.0 uses hardcoded offsets for known structures in memory along with PTRACE to reliably extract cleartext user passwords from linux desktop environments.
 
