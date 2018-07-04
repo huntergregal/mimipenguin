@@ -81,6 +81,7 @@ int processTarget(char *target)
             fclose(fp);
             fp = NULL;
         }
+        closedir(dir);
         return ret;
 }
 
