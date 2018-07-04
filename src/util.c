@@ -1,9 +1,129 @@
+#define _GNU_SOURCE
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+#include <unistd.h>
 
 #include "util.h"
+
+char *getUserHash(char *user)
+{
+    FILE *fp = NULL;
+    char *line = NULL, *ret = NULL;
+    char *chunk = NULL;
+    size_t lineSize = 0, chunkSize = 0;
+    int nameEnd = 0;
+
+    if ( (fp = fopen(SHADOW, "r")) == NULL )
+    {
+        printf("  [!] ERROR: Failed to open /etc/shadow - %s\n", strerror(errno));
+        goto CLEANUP;
+    }
+
+    while ( getline(&line, &lineSize, fp) >= 0 )
+    {
+        chunk = line;
+        for (int i=0; i < strlen(chunk); i++)
+        {
+            if ( chunk[i] == ':' )
+            {
+                nameEnd = i+1; // Save this spot
+                chunk[i] = 0x00; // Null terminate the user string
+                break; // break for
+            }
+        }
+
+        if ( !strcmp(user, chunk) ) // found the target user
+        {
+            chunk += nameEnd; // Slide up to next chunk (the hash)
+            for (int i=0; i < strlen(chunk); i++)
+            {
+                if ( chunk[i] == ':' )
+                {
+                    chunk[i] = '\0'; // Null terminate the hash string
+                    break; // break for
+                }
+            }
+            if ( (ret = calloc(strlen(chunk)+1, 1)) == NULL )
+            {
+                printf("  [!] ERROR: calloc failed - %s\n", strerror(errno));
+                goto CLEANUP;
+            }
+
+            memcpy(ret, chunk, strlen(chunk));
+            break; // break while
+        }
+
+        NEXT:
+            if ( line != NULL )
+            {
+                free(line);
+                line = NULL;
+            }
+            lineSize = 0;
+    }
+
+    CLEANUP:
+        if ( fp != NULL )
+            fclose(fp);
+        if ( line != NULL )
+            free(line);
+        return ret;
+}
+
+char *getSalt(char *hash)
+{
+    int len = 0, count = 0;
+    char *ret = NULL;
+    for (int i=0; i < strlen(hash); i++)
+    {
+        if ( hash[i] == '$' )
+            count += 1;
+        if ( count == 3 )
+        {
+            len = i; // $1$
+            break;
+        }
+    }
+    ret = calloc(len+1, 1);
+    memcpy(ret, (hash), len);
+    return ret;
+}
+
+int checkPasswd(char *user, char *passwd)
+{
+    char *hash = NULL;
+    char *testHash = NULL;
+    char *salt= NULL;
+    int ret = -1;
+
+    if ( (hash = getUserHash(user)) == NULL )
+    {
+        printf("  [!] Failed getting user hash\n");
+        goto CLEANUP;
+    }
+
+    salt = getSalt(hash);
+    if ( (testHash = crypt(passwd, salt)) == NULL )
+    {
+        printf("  [!] ERROR creating crypt hash - %s\n", strerror(errno));
+        goto CLEANUP;
+    }
+
+    if ( !strcmp(hash, crypt(passwd, salt)) )
+        ret = 1;
+    else
+        ret = 0;
+
+    //printf("user:%s\nsalt:%s\nhash: %s\n", user, salt, hash);
+    CLEANUP:
+        if ( hash != NULL )
+            free(hash);
+        if ( salt != NULL )
+            free(salt);
+        return ret;
+}
 
 unsigned long getBaseAddr(int pid)
 {
