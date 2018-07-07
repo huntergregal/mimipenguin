@@ -24,7 +24,7 @@ function dump_pid () {
 	if [[ $system == "kali" ]]; then
 		mem_maps=$(grep -E "^[0-9a-f-]* r" /proc/"$pid"/maps | grep -E 'heap|stack' | cut -d' ' -f 1)
 	else
-		mem_maps=$(grep -E "^[0-9a-f-]* r" /proc/"$pid"/maps | cut -d' ' -f 1)
+		mem_maps=$(grep -E "^[0-9a-f-]* r" /proc/"$pid"/maps | grep -E -v 'lib|usr|bin' | cut -d' ' -f 1)
 	fi
 	while read -r memrange; do
 		memrange_start=$(echo "$memrange" | cut -d"-" -f 1)
