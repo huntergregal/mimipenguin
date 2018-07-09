@@ -17,9 +17,19 @@ GnomeKeyringTarget g_gnomeKeyringTargets[] = {
         0
     },
     {
-    "3.28.0.2",
-    (void*)0x30abc0,
-    1
+        "3.20.0",
+        (void*)0x308BB8,
+        1
+    },
+    {
+        "3.20.1",
+        (void*)0x307BC0,
+        1
+    },
+    {
+        "3.28.0.2",
+        (void*)0x30abc0,
+        1
     }
 };
 
