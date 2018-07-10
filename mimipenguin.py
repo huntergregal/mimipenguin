@@ -69,6 +69,8 @@ def dump_process(pid):
 
     with open('/proc/{}/maps'.format(pid), 'r') as maps_file:
         for l in maps_file.readlines():
+            if re.search(r'lib|usr|bin', l):
+                continue
             memrange, attributes = l.split(' ')[:2]
             if attributes.startswith('r'):
                 memrange_start, memrange_stop = [
