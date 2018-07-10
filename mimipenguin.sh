@@ -14,6 +14,25 @@ fi
 #Store results to cleanup later
 export RESULTS=""
 
+# check if a command exists in $PATH
+command_exists () {
+
+  command -v "${1}" >/dev/null 2>&1
+}
+
+# check for required executables in $PATH
+if ! command_exists strings; then
+    echo "Error: command 'strings' not found in ${PATH}"
+    exit 1
+fi
+if ! command_exists grep; then
+    echo "Error: command 'grep' not found in ${PATH}"
+    exit 1
+fi
+if ! command_exists python2; then
+    echo "Error: command 'python2' not found in ${PATH}"
+    exit 1
+fi
 
 # $1 = PID, $2 = output_file, $3 = operating system
 function dump_pid () {
