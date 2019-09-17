@@ -1,18 +1,17 @@
 CC=gcc
-CFLAGS=-Isrc/
-
+CFLAGS=-Iinclude/ -D_FILE_OFFSET_BITS=64
+LDFLAGS=-lcrypt
 
 all: 
-	$(CC) $(CFLAGS) src/mimipenguin.c src/gnomeKeyring.c src/util.c -o mimipenguin -lcrypt
-	strip mimipenguin
+	@$(CC) $(CFLAGS) src/scanner.c src/users.c src/targets.c src/mimipenguin.c -o mimipenguin $(LDFLAGS)
+	@$(CC) $(CFLAGS) -m32 src/scanner.c src/users.c src/targets.c src/mimipenguin.c -o mimipenguin_x32 $(LDFLAGS)
 
 debug: 
-	$(CC) $(CFLAGS) -g src/mimipenguin.c src/gnomeKeyring.c src/util.c -o mimipenguin -lcrypt
+	@$(CC) $(CFLAGS) -DDEBUG src/scanner.c src/users.c src/targets.c src/mimipenguin.c -o mimipenguin $(LDFLAGS)
+	@$(CC) $(CFLAGS) -m32 -DDEBUG src/scanner.c src/users.c src/targets.c src/mimipenguin.c -o mimipenguin_x32 $(LDFLAGS)
 
-32: 
-	$(CC) $(CFLAGS) src/mimipenguin.c src/gnomeKeyring.c src/util.c -m32 -o mimipenguin_x32 -lcrypt
-	strip mimipenguin_x32
 clean:
-	@rm mimipenguin*
+	@rm mimipenguin
+	@rm mimipenguin_x32
 
 .PHONY: all

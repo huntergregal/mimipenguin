@@ -6,18 +6,52 @@ A tool to dump the login password from the current linux desktop user. Adapted f
 ## Details
 This version of Mimipenguin sacrifices features and coverage (as opposed to the beta-1.0 py and sh scripts) in favor of speed and efficiency. Beta 2.0 uses hardcoded offsets for known structures in memory along with PTRACE to reliably extract cleartext user passwords from linux desktop environments.
 
+## Known Issues
+* The 32bit variant of mimipenguin (C build) may fail in a 64bit userspace as it currently does not adequatley handle searching a 64bit address space
+
 ## Requires
 * root permissions
 * a supported target
 
-## Supported
-| OS                             |   Service                        | Supported          |
-|--------------------------------|----------------------------------|--------------------|
-| Ubuntu Desktop 12.04 LTS x64   | gnome-keyring-daemon (3.18.3)    | :heavy_check_mark: |
-| Ubuntu Desktop 16.04 LTS x64   | gnome-keyring-daemon (3.18.3)    | :heavy_check_mark: |
-| Fedora Workstation 25 (x86_64) | gnome-keyring-daemon (3.20.0)    | :heavy_check_mark: |
-| Fedora Workstation 27 (x86_64) | gnome-keyring-daemon (3.20.1)    | :heavy_check_mark: |
-| Kali-rolling x64               | gnome-keyring-daemon (3.28.0.2)  | :heavy_check_mark: |
+## Supported/Tested Systems
+* Kali 4.3.0 (rolling) x64 (gdm3)
+* Ubuntu Desktop 12.04 LTS x64 (Gnome Keyring 3.18.3-0ubuntu2)
+* Ubuntu Desktop 14.04.1 LTS x64 (Gnome Keyring 3.10.1-1ubuntu4.3, LightDM 1.10.6-0ubuntu1)
+* Ubuntu Desktop 16.04 LTS x64 (Gnome Keyring 3.18.3-0ubuntu2)
+* Ubuntu Desktop 16.04.4 LTS x64 (Gnome Keyring 3.18.3-0ubuntu2, LightDM 1.18.3-0ubuntu1.1)
+* Ubuntu 18.04
+* XUbuntu Desktop 16.04 x64 (Gnome Keyring 3.18.3-0ubuntu2)
+* Archlinux x64 Gnome 3 (Gnome Keyring 3.20)
+* OpenSUSE Leap 42.2 x64 (Gnome Keyring 3.20)
+* VSFTPd 3.0.3-8+b1 (Active FTP client connections)
+* Apache2 2.4.25-3 (Active/Old HTTP BASIC AUTH Sessions) [Gcore dependency]
+* openssh-server 1:7.3p1-1 (Active SSH connections - sudo usage)
+
+## Building
+* To Build the C variant simply run `make` in the root directory of the project
+
+## Notes
+* Password moves in memory - still honing in on 100% effectiveness
+* Plan on expanding support and other credential locations
+* Working on expanding to non-desktop environments
+* Known bug - sometimes gcore hangs the script, this is a problem with gcore
+* Open to pull requests and community research
+* LDAP research (nscld winbind etc) planned for future
+
+## Development Roadmap
+* Implement needles in C port (speed up)
+* Add optional arg to target specific users only (speed up)
+
+MimiPenguin is slowly being ported to multiple languages to support all possible post-exploit scenarios. The roadmap below was suggested by KINGSABRI to track the various versions and features. An "X" denotes full support while a "~" denotes a feature with known bugs.
+
+| Feature                                           | .sh | .py |
+|---------------------------------------------------|-----|-----|
+| GDM password (Kali Desktop, Debian Desktop)       | ~   | X   |
+| Gnome Keyring (Ubuntu Desktop, ArchLinux Desktop) | ~   | X   |
+| LightDM (Ubuntu Desktop)                          | X   | X   |
+| VSFTPd (Active FTP Connections)                   | X   | X   |
+| Apache2 (Active HTTP Basic Auth Sessions)         | ~   | ~   |
+| OpenSSH (Active SSH Sessions - Sudo Usage)        | ~   | ~   |
 
 ## Contact
 * Twitter: [@huntergregal](https://twitter.com/HunterGregal)
