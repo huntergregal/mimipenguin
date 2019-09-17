@@ -23,6 +23,9 @@ Takes advantage of cleartext credentials in memory by dumping the process and ex
 * Apache2 2.4.25-3 (Active/Old HTTP BASIC AUTH Sessions) [Gcore dependency]
 * openssh-server 1:7.3p1-1 (Active SSH connections - sudo usage)
 
+## Building
+* To Build the C variant simply run `make` in the root directory of the project
+
 ## Notes
 * Password moves in memory - still honing in on 100% effectiveness
 * Plan on expanding support and other credential locations
