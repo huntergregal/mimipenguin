@@ -1,6 +1,3 @@
-# DEV NOTES
-* `x/s *(char**)0x6f7158+32` 0x6f7158 potential address of session structure in gnome-keyring-daemon? `gnome-keyring-daemon: 3.18.3` `TODO`
-
 # mimipenguin
 A tool to dump the login password from the current linux desktop user. Adapted from the idea behind the popular Windows tool mimikatz. 
 
@@ -15,7 +12,10 @@ Takes advantage of cleartext credentials in memory by dumping the process and ex
 ## Supported/Tested Systems
 * Kali 4.3.0 (rolling) x64 (gdm3)
 * Ubuntu Desktop 12.04 LTS x64 (Gnome Keyring 3.18.3-0ubuntu2)
+* Ubuntu Desktop 14.04.1 LTS x64 (Gnome Keyring 3.10.1-1ubuntu4.3, LightDM 1.10.6-0ubuntu1)
 * Ubuntu Desktop 16.04 LTS x64 (Gnome Keyring 3.18.3-0ubuntu2)
+* Ubuntu Desktop 16.04.4 LTS x64 (Gnome Keyring 3.18.3-0ubuntu2, LightDM 1.18.3-0ubuntu1.1)
+* Ubuntu 18
 * XUbuntu Desktop 16.04 x64 (Gnome Keyring 3.18.3-0ubuntu2)
 * Archlinux x64 Gnome 3 (Gnome Keyring 3.20)
 * OpenSUSE Leap 42.2 x64 (Gnome Keyring 3.20)
@@ -32,12 +32,16 @@ Takes advantage of cleartext credentials in memory by dumping the process and ex
 * LDAP research (nscld winbind etc) planned for future
 
 ## Development Roadmap
+* Implement needles in C port (speed up)
+* Add optional arg to target specific users only (speed up)
+
 MimiPenguin is slowly being ported to multiple languages to support all possible post-exploit scenarios. The roadmap below was suggested by KINGSABRI to track the various versions and features. An "X" denotes full support while a "~" denotes a feature with known bugs.
 
 | Feature                                           | .sh | .py |
 |---------------------------------------------------|-----|-----|
 | GDM password (Kali Desktop, Debian Desktop)       | ~   | X   |
-| Gnome Keyring (Ubuntu Desktop, ArchLinux Desktop) | X   | X   |
+| Gnome Keyring (Ubuntu Desktop, ArchLinux Desktop) | ~   | X   |
+| LightDM (Ubuntu Desktop)                          | X   | X   |
 | VSFTPd (Active FTP Connections)                   | X   | X   |
 | Apache2 (Active HTTP Basic Auth Sessions)         | ~   | ~   |
 | OpenSSH (Active SSH Sessions - Sudo Usage)        | ~   | ~   |
@@ -63,3 +67,5 @@ CC BY 4.0 licence - https://creativecommons.org/licenses/by/4.0/
 * n1nj4sec for a python2 port and support
 * KINGSABRI for the Roadmap proposal
 * bourgouinadrien for linking https://github.com/koalaman/shellcheck
+* bcoles for adding more needles and work on a metasploit module ruby port
+

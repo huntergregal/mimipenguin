@@ -2,12 +2,9 @@
 #define TARGETS_H
 
 #include <sys/types.h>
+#include <dirent.h>
 
-#define MAX_PIDS 24
-#define MAX_NAME_SIZE 128
-#define MAX_TARGETS 4
-#define MAX_NEEDLES 4
-#define MAX_SOURCE_SIZE 32
+#include "max.h"
 
 /* Pids struct to handle lists of Pids*/
 typedef struct {
@@ -23,13 +20,23 @@ typedef struct {
 
 /* Target processes struct */
 typedef struct {
-    char name[MAX_NAME_SIZE]; //Process name
-    char source[MAX_SOURCE_SIZE];
+    char name[MAX_SHRT_NAME]; //Process name
+    char source[MAX_SHRT_NAME]; // my name for proc
     Pids pids; //All Pids associated with process/service
     Needles needles; //regex patterns
 } Target;
 
 /* Init the known targets with their needles and names */
 void initTargets(Target targets[MAX_TARGETS]);
+
+/* Filter to identify /proc/ subdirs as PIDs */
+static int filter(const struct dirent *dir);
+
+/*  Get all pids associated with Targets and populate the struts */
+void getTargetPids(Target targets[MAX_TARGETS]);
+
+#ifdef DEBUG
+void dumpTargets(Target *targets);
+#endif
 
 #endif
