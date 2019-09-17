@@ -1,10 +1,10 @@
 # MimiPenguin 2.0
-A tool to dump the login password from the current linux desktop user. Adapted from the idea behind the popular Windows tool mimikatz. 
+A tool to dump the login password from the current linux desktop user. Adapted from the idea behind the popular Windows tool mimikatz.
 
 ![alt text](http://i.imgur.com/BkDX9dF.png "MimiPenguin")
 
 ## Details
-Takes advantage of cleartext credentials in memory by dumping the process and extracting lines that have a high probability of containing cleartext passwords. Will attempt to calculate each word's probability by checking hashes in /etc/shadow, hashes in memory, and regex searches.
+Takes advantage of cleartext credentials in memory by dumping the process and extracting lines that have a high probability of containing cleartext passwords. Will attempt to calculate each word's probability by checking hashes in /etc/shadow, hashes in memory, and regex searches. 2.0 introduces a clean C port that aims to increase the speed of execution and portability
 
 ## Known Issues
 * The 32bit variant of mimipenguin (C build) may fail in a 64bit userspace as it currently does not adequatley handle searching a 64bit address space
@@ -27,7 +27,9 @@ Takes advantage of cleartext credentials in memory by dumping the process and ex
 * openssh-server 1:7.3p1-1 (Active SSH connections - sudo usage)
 
 ## Building
-* To Build the C variant simply run `make` in the root directory of the project
+* To Build the C variant release simply run `make` in the root directory of the project
+* To build a debug binary with debug prints run `make debug`
+* To build a static linked binaries run `make static`
 
 ## Notes
 * Password moves in memory - still honing in on 100% effectiveness
