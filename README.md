@@ -1,3 +1,6 @@
+# OBSOLETE BRANCH
+* Keeping for history and any future research. Uses known offsets now deprecated in favor of string parsing method.
+
 # Mimipenguin beta-2.0
 A tool to dump the login password from the current linux desktop user. Adapted from the idea behind the popular Windows tool mimikatz. 
 
