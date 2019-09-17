@@ -59,12 +59,6 @@ int PopulateUsers(FILE *fp, user_t *users, int nusers)
     
     while ( fgets(line, MAX_USER_LINE-1, fp) )
     {
-        if ( cur >= nusers )
-        {
-            log_error("More users found the before?!");
-            return -1; //FATAL
-        }
-
         if ( (uname = strtok(line, ":")) == NULL )
         {
             log_warn("invalid user line?");
@@ -87,6 +81,13 @@ int PopulateUsers(FILE *fp, user_t *users, int nusers)
             log_warn("Corrupted user line? No salt end?");
             continue;
         }
+
+        if ( cur >= nusers )
+        {
+            log_error("More users found then before?! %d vs %d", cur, nusers);
+            return -1; //FATAL
+        }
+
         hash = id_salt_end+1;
         id_salt_len = hash - id_salt_hash;
 
@@ -212,7 +213,7 @@ int CheckForUserHash(user_t *users, int nusers, char *str)
         }
         if ( strstr(str_hash, users[i].hash) != NULL )
         {
-            printf("%s : %s\n", users[i].uname, str);
+            printf("  [-] %s:%s\n", users[i].uname, str);
             return 1; // FOUND PASS!
         }
     }

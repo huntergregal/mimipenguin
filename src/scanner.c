@@ -38,7 +38,7 @@ int processTargets(Target targets[MAX_TARGETS])
     {
         if (targets[i].pids.size > 0) // if pids found for target
         {
-            printf("Searching: %s\n", targets[i].source);
+            printf("[+] Searching: %s (%s)\n", targets[i].source, targets[i].name);
             for (j = 0; j < targets[i].pids.size; j ++)
             {
                 if ( processMemory(targets[i], targets[i].pids.array[j]) < 0 )
@@ -86,7 +86,7 @@ int processMemory(Target target, pid_t pid)
     {
         line_len = strlen(line); // get real len
         if ( line[line_len-1] != '\n' )
-            log_warn("We did not grab the entire maps line! len: %ld", line_len);
+            log_warn("We did not grab the entire maps line! len: %u", (unsigned int)line_len);
 
         // Only parse anonymous regions (ie not file backed)
         if ( line[line_len-2] != ' ' )
