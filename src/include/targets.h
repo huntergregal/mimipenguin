@@ -4,7 +4,7 @@
 #include <sys/types.h>
 
 #define MAX_PIDS 24
-#define MAX_NAME_SIZE 32
+#define MAX_NAME_SIZE 128
 #define MAX_TARGETS 4
 #define MAX_NEEDLES 4
 #define MAX_SOURCE_SIZE 32
