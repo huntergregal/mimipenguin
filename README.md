@@ -1,5 +1,5 @@
 # MimiPenguin 2.0
-A tool to dump the login password from the current linux desktop user. Adapted from the idea behind the popular Windows tool mimikatz. This was assigned *CVE-2018-20781* (https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-20781)
+A tool to dump the login password from the current linux desktop user. Adapted from the idea behind the popular Windows tool mimikatz. This was assigned *CVE-2018-20781* (https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-20781). Fun fact it's still not fixed after GNOME Keyring before 3.27.2 and still works as of `3.28.0.2-1ubuntu1.18.04.1`.
 
 ![alt text](http://i.imgur.com/BkDX9dF.png "MimiPenguin")
 
