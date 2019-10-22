@@ -1,5 +1,5 @@
 # MimiPenguin 2.0
-A tool to dump the login password from the current linux desktop user. Adapted from the idea behind the popular Windows tool mimikatz.
+A tool to dump the login password from the current linux desktop user. Adapted from the idea behind the popular Windows tool mimikatz. This was assigned *CVE-2018-20781* (https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-20781)
 
 ![alt text](http://i.imgur.com/BkDX9dF.png "MimiPenguin")
 
