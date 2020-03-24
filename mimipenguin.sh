@@ -29,8 +29,20 @@ if ! command_exists grep; then
     echo "Error: command 'grep' not found in ${PATH}"
     exit 1
 fi
-if ! command_exists python2; then
-    echo "Error: command 'python2' not found in ${PATH}"
+
+# Check for any of the currently tested versions of Python
+if command_exists python2; then
+    pycmd=python2
+elif command_exists python2.7; then
+    pycmd=python2.7
+elif command_exists python3; then
+    pycmd=python3
+elif command_exists python3.6; then
+    pycmd=python3.6
+elif command_exists python3.7; then
+    pycmd=python3.7
+else
+    echo "Error: No supported version of 'python' found in ${PATH}"
     exit 1
 fi
 
@@ -75,7 +87,7 @@ function parse_pass () {
             #Escape quotes, backslashes, single quotes to pass into crypt
             SAFE=$(echo "$line" | sed 's/\\/\\\\/g; s/\"/\\"/g; s/'"'"'/\\'"'"'/g;')
             CRYPT="\"$SAFE\", \"$CTYPE$3\""
-            if [[ $(python2 -c "import crypt; print crypt.crypt($CRYPT)") == "$2" ]]; then
+            if [[ $($pycmd -c "from __future__ import print_function; import crypt; print(crypt.crypt($CRYPT))") == "$2" ]]; then
                 #Find which user's password it is (useful if used more than once!)
                 USER="$(grep "${2}" /etc/shadow | cut -d':' -f 1)"
                 export RESULTS="$RESULTS$4          $USER:$line \n"
@@ -88,7 +100,7 @@ function parse_pass () {
                 #Escape quotes, backslashes, single quotes to pass into crypt
                 SAFE=$(echo "$line" | sed 's/\\/\\\\/g; s/\"/\\"/g; s/'"'"'/\\'"'"'/g;')
                 CRYPT="\"$SAFE\", \"$CTYPE$SHADOWSALT\""
-                if [[ $(python2 -c "import crypt; print crypt.crypt($CRYPT)") == "$thishash" ]]; then
+                if [[ $($pycmd -c "from __future__ import print_function; import crypt; print(crypt.crypt($CRYPT))") == "$thishash" ]]; then
                     #Find which user's password it is (useful if used more than once!)
                     USER="$(grep "${thishash}" /etc/shadow | cut -d':' -f 1)"
                     export RESULTS="$RESULTS$4          $USER:$line\n"
