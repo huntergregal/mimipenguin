@@ -203,6 +203,7 @@ int CheckForUserHash(user_t *users, int nusers, char *str)
 {
     int i = 0;
     char *str_hash = NULL;
+    int ret = 0;
 
     for ( i = 0; i < nusers; i++ )
     {
@@ -214,7 +215,7 @@ int CheckForUserHash(user_t *users, int nusers, char *str)
         if ( strstr(str_hash, users[i].hash) != NULL )
         {
             printf("  [-] %s:%s\n", users[i].uname, str);
-            return 1; // FOUND PASS!
+            ret = 1; // FOUND PASS!
         }
     }
     return 0; // not found
