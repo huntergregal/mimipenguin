@@ -75,4 +75,5 @@ CC BY 4.0 licence - https://creativecommons.org/licenses/by/4.0/
 * n1nj4sec for a python2 port and support
 * KINGSABRI for the Roadmap proposal
 * bourgouinadrien for linking https://github.com/koalaman/shellcheck
-* bcoles for adding more needles and work on a metasploit module ruby port
+* bcoles for adding more needles
+* space-r7 and bcoles for work on the [Metasploit MimiPenguin module](https://github.com/rapid7/metasploit-framework/blob/master/documentation/modules/post/linux/gather/mimipenguin.md) port
