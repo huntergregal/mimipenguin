@@ -1,6 +1,7 @@
 #ifndef SCANNER_H
 #define SCANNER_H
 
+#include <stdint.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -23,6 +24,6 @@ int getStr(FILE *fp, char *str, size_t min_str, size_t max_str, size_t *cur, siz
 
 /* Process a memory region potential passwords */
 // -1 error, 0 good
-int processRegion(FILE *fp, unsigned long start, unsigned long end);
+int processRegion(FILE *fp, uint64_t start, uint64_t end);
 
 #endif /* SCANNER_H */
