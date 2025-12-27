@@ -1,5 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdint.h>
+#include <inttypes.h>
 #include <sys/ptrace.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -61,7 +63,7 @@ int processMemory(Target target, pid_t pid)
     char maps_path[MAX_PATH] = {0};
     char mem_path[MAX_PATH] = {0};
     char atts[ATTS_SZ] = {0};
-    unsigned long start = 0, end = 0;
+    uint64_t start = 0, end = 0;
     char line[MAX_MAP_LINE] = {0};
     size_t line_len = 0;
     int ret = -1;
@@ -92,7 +94,7 @@ int processMemory(Target target, pid_t pid)
         if ( line[line_len-2] != ' ' )
             continue; //skipping filebacked region
         
-        sscanf(line, "%lx-%lx %s", &start, &end, atts);
+        sscanf(line, "%"SCNx64"-%"SCNx64" %s", &start, &end, atts);
         if (strstr(atts, "rw") == NULL) // Only parse read/write regions
             continue;
         if ( processRegion(mem_fp, start, end) < 0 )
@@ -151,7 +153,7 @@ int getStr(FILE *fp, char *str, size_t min_str, size_t max_str, size_t *cur, siz
 }
 
 
-int processRegion(FILE *fp, unsigned long start, unsigned long end)
+int processRegion(FILE *fp, uint64_t start, uint64_t end)
 {
     char str[MAX_STR] = {0};
     int ret = -1;
@@ -161,9 +163,9 @@ int processRegion(FILE *fp, unsigned long start, unsigned long end)
 
     max_cur = (end-start);
     // Seek to our region
-    if ( fseeko(fp, start, SEEK_SET) < 0 )
+    if ( fseeko(fp, (off_t)start, SEEK_SET) < 0 )
     {
-        log_error("Failed to fseeko %lx", start);
+        log_error("Failed to fseeko 0x%"PRIx64, start);
         goto DONE;
     }
 

@@ -6,9 +6,6 @@ A tool to dump the login password from the current linux desktop user. Adapted f
 ## Details
 Takes advantage of cleartext credentials in memory by dumping the process and extracting lines that have a high probability of containing cleartext passwords. Will attempt to calculate each word's probability by checking hashes in /etc/shadow, hashes in memory, and regex searches. 2.0 introduces a clean C port that aims to increase the speed of execution and portability
 
-## Known Issues
-* The 32bit variant of mimipenguin (C build) may fail in a 64bit userspace as it currently does not adequately handle searching a 64bit address space
-
 ## Requires
 * root permissions
 
